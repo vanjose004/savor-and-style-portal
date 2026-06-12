@@ -104,6 +104,7 @@ export const DEFAULT_FREEBIES = [
   { name: 'Accent Lights' },
   { name: 'Panels', unit: 'panel' },
   { name: 'Flowers' },
+  { name: 'Entrance Arch' },
 ]
 
 /** Render a stored freebie ({ name, quantity? }) as a display label. */
