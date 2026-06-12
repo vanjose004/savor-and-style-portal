@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import BookingForm from '../../components/admin/BookingForm'
-import { splitBookingFormValues } from '../../lib/bookings'
+import { splitBookingFormValues, syncKidsMenuItems } from '../../lib/bookings'
 
 export default function BookingNew() {
   const navigate = useNavigate()
@@ -38,6 +38,8 @@ export default function BookingNew() {
       setSubmitting(false)
       return
     }
+
+    await syncKidsMenuItems(booking.id, bookingFields.event_type, bookingFields.kids_menu)
 
     showToast('Booking created.')
     navigate(`/admin/bookings/${booking.id}`)

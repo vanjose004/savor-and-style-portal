@@ -1,4 +1,5 @@
-import { RESERVATION_FEE, DEFAULT_SERVICE_HOURS } from './constants'
+import { supabase } from './supabase'
+import { RESERVATION_FEE, DEFAULT_SERVICE_HOURS, KIDS_EVENT_TYPES, KIDS_MENU_ITEM_CATEGORIES } from './constants'
 
 /**
  * Split a BookingForm submission into the `clients` and `bookings` table
@@ -47,4 +48,37 @@ export function splitBookingFormValues(values, { wasContractSigned = false } = {
   }
 
   return { clientFields, bookingFields }
+}
+
+/**
+ * Ensure each checked Kids Menu item has a matching confirmed row in
+ * booking_menu_items, so it shows up in the booking's main Menu section.
+ * Only inserts items not already present — admin edits/removals via Edit
+ * Menu are left alone.
+ */
+export async function syncKidsMenuItems(bookingId, eventType, kidsMenu) {
+  if (!KIDS_EVENT_TYPES.includes(eventType) || !kidsMenu?.length) return
+
+  const { data: existing, error } = await supabase
+    .from('booking_menu_items')
+    .select('dish_name')
+    .eq('booking_id', bookingId)
+
+  if (error) return
+
+  const existingNames = new Set(existing.map((item) => item.dish_name))
+
+  const toInsert = kidsMenu
+    .filter((item) => KIDS_MENU_ITEM_CATEGORIES[item] && !existingNames.has(item))
+    .map((item) => ({
+      booking_id: bookingId,
+      dish_name: item,
+      category: KIDS_MENU_ITEM_CATEGORIES[item],
+      suggested_by: 'admin',
+      status: 'confirmed',
+    }))
+
+  if (toInsert.length > 0) {
+    await supabase.from('booking_menu_items').insert(toInsert)
+  }
 }

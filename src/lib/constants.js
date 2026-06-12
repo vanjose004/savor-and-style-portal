@@ -27,6 +27,15 @@ export const KIDS_EVENT_TYPES = ['Kiddie Party', 'Christening/Dedication']
 // event type.
 export const DEFAULT_KIDS_MENU = ['Filipino Spaghetti', 'Fried Chicken', 'Juice', 'Kiddie Tables and Chairs']
 
+// Category each Kids Menu item is filed under when automatically added to a
+// booking's main menu (booking_menu_items).
+export const KIDS_MENU_ITEM_CATEGORIES = {
+  'Filipino Spaghetti': 'Pasta',
+  'Fried Chicken': 'Chicken',
+  Juice: 'Juice',
+  'Kiddie Tables and Chairs': 'Kids',
+}
+
 export const BOOKING_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled']
 
 export const MENU_CATEGORIES = [
@@ -38,6 +47,7 @@ export const MENU_CATEGORIES = [
   'Fish',
   'Juice',
   'Dessert',
+  'Kids',
 ]
 
 export const MENU_ITEM_STATUSES = ['suggested', 'confirmed', 'rejected']

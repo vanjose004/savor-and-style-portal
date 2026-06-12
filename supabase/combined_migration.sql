@@ -1049,3 +1049,20 @@ returns table (
 $$ language sql security definer stable set search_path = public;
 
 grant execute on function get_booking_by_token(text) to anon, authenticated;
+
+-- ============================================================================
+-- MIGRATION 14 — Kids category for the main menu
+-- ============================================================================
+
+alter table booking_menu_items drop constraint booking_menu_items_category_check;
+alter table booking_menu_items add constraint booking_menu_items_category_check
+  check (category in ('Pork', 'Chicken', 'Pasta', 'Beef', 'Vegetable', 'Fish', 'Juice', 'Dessert', 'Kids'));
+
+alter table menu_master drop constraint menu_master_category_check;
+alter table menu_master add constraint menu_master_category_check
+  check (category in ('Pork', 'Chicken', 'Pasta', 'Beef', 'Vegetable', 'Fish', 'Juice', 'Dessert', 'Kids'));
+
+insert into menu_master (dish_name, category) values
+  ('Fried Chicken', 'Chicken'),
+  ('Juice', 'Juice'),
+  ('Kiddie Tables and Chairs', 'Kids');

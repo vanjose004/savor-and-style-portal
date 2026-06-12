@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import BookingForm from '../../components/admin/BookingForm'
 import Spinner from '../../components/ui/Spinner'
-import { splitBookingFormValues } from '../../lib/bookings'
+import { splitBookingFormValues, syncKidsMenuItems } from '../../lib/bookings'
 
 export default function BookingEdit() {
   const { id } = useParams()
@@ -61,6 +61,8 @@ export default function BookingEdit() {
       setSubmitting(false)
       return
     }
+
+    await syncKidsMenuItems(booking.id, bookingFields.event_type, bookingFields.kids_menu)
 
     showToast('Booking updated.')
     navigate(`/admin/bookings/${booking.id}`)
