@@ -9,7 +9,7 @@ import Spinner from '../../components/ui/Spinner'
 import StatusBadge from '../../components/ui/StatusBadge'
 import Field from '../../components/ui/Field'
 import { formatDate, formatTime } from '../../lib/utils'
-import { LECHON_NOTE } from '../../lib/constants'
+import { LECHON_NOTE, KIDS_EVENT_TYPES } from '../../lib/constants'
 import MenuSection from '../../components/admin/booking-detail/MenuSection'
 import FreebiesSection from '../../components/admin/booking-detail/FreebiesSection'
 import PaymentSection from '../../components/admin/booking-detail/PaymentSection'
@@ -102,10 +102,26 @@ export default function BookingDetail() {
               <Field label="Pax" value={booking.pax ?? '—'} />
               <Field label="Service Hours" value={booking.service_hours} />
               <Field label="Client Has Lechon" value={booking.lechon_chopping ? 'Yes' : 'No'} />
+              {KIDS_EVENT_TYPES.includes(booking.event_type) && (
+                <>
+                  <Field label="Number of Adults" value={booking.num_adults ?? '—'} />
+                  <Field label="Number of Kids" value={booking.num_kids ?? '—'} />
+                </>
+              )}
             </dl>
             {booking.lechon_chopping && (
               <div className="mt-4 pt-4 border-t border-gold/10">
                 <p className="text-sm text-wine font-medium">{LECHON_NOTE}</p>
+              </div>
+            )}
+            {KIDS_EVENT_TYPES.includes(booking.event_type) && booking.kids_menu?.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-gold/10">
+                <p className="text-text-muted text-sm mb-1">Kids Menu</p>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-sm text-text-dark">
+                  {booking.kids_menu.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
               </div>
             )}
             {booking.special_requests && (

@@ -18,6 +18,15 @@ export const EVENT_TYPES = [
   'Others',
 ]
 
+// Event types that show the Number of Adults / Number of Kids fields and the
+// Kids Menu section on the booking form, booking detail page, client portal,
+// and Booking Form PDF.
+export const KIDS_EVENT_TYPES = ['Kiddie Party', 'Christening/Dedication']
+
+// Default Kids Menu items, pre-selected when creating a booking with a kids
+// event type.
+export const DEFAULT_KIDS_MENU = ['Filipino Spaghetti', 'Fried Chicken', 'Juice', 'Kiddie Tables and Chairs']
+
 export const BOOKING_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled']
 
 export const MENU_CATEGORIES = [

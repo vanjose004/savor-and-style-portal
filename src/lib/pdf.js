@@ -1,6 +1,14 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { BUSINESS, PAYMENT_TYPE_LABELS, MENU_CATEGORIES, DEFAULT_INCLUSIONS, LECHON_NOTE, formatFreebie } from './constants'
+import {
+  BUSINESS,
+  PAYMENT_TYPE_LABELS,
+  MENU_CATEGORIES,
+  DEFAULT_INCLUSIONS,
+  LECHON_NOTE,
+  KIDS_EVENT_TYPES,
+  formatFreebie,
+} from './constants'
 import { formatDate, formatTime, formatDateTime } from './utils'
 
 const PAGE_WIDTH = 210
@@ -548,6 +556,8 @@ export async function generateBookingFormPDF(booking, menuItems = []) {
   w.field('Address:', client.address || '—')
 
   // --- Event Information --------------------------------------------------
+  const isKidsEvent = KIDS_EVENT_TYPES.includes(booking.event_type)
+
   w.band('EVENT INFORMATION')
   w.fieldRow([
     ['Event Type:', booking.event_type || '—'],
@@ -557,6 +567,12 @@ export async function generateBookingFormPDF(booking, menuItems = []) {
     ['Number of Guests:', booking.pax ?? '—'],
     ['Start Time:', booking.event_time ? formatTime(booking.event_time) : '—'],
   ])
+  if (isKidsEvent) {
+    w.fieldRow([
+      ['Number of Adults:', booking.num_adults ?? '—'],
+      ['Number of Kids:', booking.num_kids ?? '—'],
+    ])
+  }
   w.field('Theme / Motif:', booking.event_motif || '—')
 
   // --- Venue Information -----------------------------------------------
@@ -598,6 +614,11 @@ export async function generateBookingFormPDF(booking, menuItems = []) {
 
   w.heading('Default Inclusions')
   DEFAULT_INCLUSIONS.forEach((item) => w.bullet(item))
+
+  if (isKidsEvent && booking.kids_menu && booking.kids_menu.length > 0) {
+    w.heading('Kids Menu')
+    booking.kids_menu.forEach((item) => w.bullet(item))
+  }
 
   if (booking.freebies && booking.freebies.length > 0) {
     w.heading('Freebies')

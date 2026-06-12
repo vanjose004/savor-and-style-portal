@@ -6,6 +6,7 @@ import Logo from '../components/ui/Logo'
 import { BUSINESS } from '../lib/constants'
 import EventSummaryCard from '../components/client/EventSummaryCard'
 import DefaultInclusionsCard from '../components/client/DefaultInclusionsCard'
+import KidsMenuCard from '../components/client/KidsMenuCard'
 import FreebiesCard from '../components/client/FreebiesCard'
 import PaymentStatusCard from '../components/client/PaymentStatusCard'
 import ClientMenuCard from '../components/client/ClientMenuCard'
@@ -79,6 +80,7 @@ export default function ClientPortal() {
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         <EventSummaryCard booking={booking} />
         <DefaultInclusionsCard />
+        <KidsMenuCard booking={booking} />
         <FreebiesCard freebies={booking.freebies} />
         <PaymentStatusCard accessToken={accessToken} booking={booking} />
         <ClientMenuCard accessToken={accessToken} menuConfirmed={booking.menu_confirmed} />

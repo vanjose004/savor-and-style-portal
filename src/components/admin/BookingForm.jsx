@@ -1,11 +1,19 @@
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
 import Card from '../ui/Card'
 import Input from '../ui/Input'
 import Select from '../ui/Select'
 import Textarea from '../ui/Textarea'
 import Button from '../ui/Button'
-import { EVENT_TYPES, BOOKING_STATUSES, RESERVATION_FEE, DEFAULT_SERVICE_HOURS, LECHON_CHOPPING_FEE } from '../../lib/constants'
+import {
+  EVENT_TYPES,
+  BOOKING_STATUSES,
+  RESERVATION_FEE,
+  DEFAULT_SERVICE_HOURS,
+  LECHON_CHOPPING_FEE,
+  KIDS_EVENT_TYPES,
+  DEFAULT_KIDS_MENU,
+} from '../../lib/constants'
 
 const STATUS_OPTIONS = BOOKING_STATUSES.map((s) => ({
   value: s,
@@ -18,6 +26,7 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -34,6 +43,9 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
       venue_contact_number: '',
       event_motif: '',
       pax: '',
+      num_adults: '',
+      num_kids: '',
+      kids_menu: DEFAULT_KIDS_MENU,
       special_requests: '',
       status: 'pending',
       menu_confirmed: false,
@@ -46,6 +58,9 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
       ...defaultValues,
     },
   })
+
+  const eventType = useWatch({ control, name: 'event_type' })
+  const showKidsFields = KIDS_EVENT_TYPES.includes(eventType)
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -80,11 +95,44 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
           <Input label="Event Motif" placeholder="e.g. Rustic Garden" {...register('event_motif')} />
           <Input label="Number of Pax" type="number" min="0" {...register('pax', { valueAsNumber: true })} />
           <Select label="Status" options={STATUS_OPTIONS} {...register('status')} />
+          {showKidsFields && (
+            <>
+              <Input
+                label="Number of Adults"
+                type="number"
+                min="0"
+                {...register('num_adults', { valueAsNumber: true })}
+              />
+              <Input
+                label="Number of Kids"
+                type="number"
+                min="0"
+                {...register('num_kids', { valueAsNumber: true })}
+              />
+            </>
+          )}
         </div>
         <div className="mt-4">
           <Textarea label="Special Requests" {...register('special_requests')} />
         </div>
       </Card>
+
+      {showKidsFields && (
+        <Card title="Kids Menu">
+          <p className="text-xs text-text-muted mb-3">
+            Tick items to include for this kids event. Shown on the booking detail page, client portal, and Booking
+            Form PDF.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {DEFAULT_KIDS_MENU.map((item) => (
+              <label key={item} className="flex items-center gap-2 text-sm text-text-dark">
+                <input type="checkbox" className={CHECKBOX_CLASS} value={item} {...register('kids_menu')} />
+                {item}
+              </label>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <Card title="Venue Information">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
