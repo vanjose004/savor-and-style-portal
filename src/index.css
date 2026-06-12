@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  /* Brand colors — Savor and Style Catering Services */
+  --color-wine: #722f37;
+  --color-wine-dark: #4a1a20;
+  --color-cream: #f5f0dc;
+  --color-warm-white: #fdfaf4;
+  --color-gold: #c9a84c;
+  --color-text-dark: #1a1a1a;
+  --color-text-muted: #6b6b6b;
+  --color-success: #2d6a4f;
+  --color-warning: #b5770d;
+  --color-danger: #8b1a1a;
+
+  /* Typography */
+  --font-heading: "Playfair Display", serif;
+  --font-body: "Inter", sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-cream);
+  color: var(--color-text-dark);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
