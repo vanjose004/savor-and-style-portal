@@ -881,7 +881,7 @@ grant execute on function get_access_token_by_booking_code(text) to anon, authen
 
 alter table bookings
   add column event_motif text,
-  add column freebies text[] not null default '{}';
+  add column freebies jsonb not null default '[]'::jsonb;
 
 drop function if exists get_booking_by_token(text);
 
@@ -905,7 +905,7 @@ returns table (
   service_hours integer,
   lechon_chopping boolean,
   event_motif text,
-  freebies text[],
+  freebies jsonb,
   client_name text,
   client_first_name text
 ) as $$

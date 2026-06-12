@@ -35,6 +35,8 @@ for the full product blueprint.
    - `20260101000006` — seed data for `menu_master`
    - `20260101000007` — adds `created_at` to `booking_menu_items`
    - `20260101000008` — booking code lookup RPC for the landing page
+   - `20260101000009` — adds `event_motif` and `freebies` to bookings
+   - `20260101000010` — converts `freebies` to jsonb with per-item quantities
 4. After running the migrations, create your admin login: sign up a user via
    Supabase Auth, then insert a row into `admins` with that user's `id`.
    Do the same in `staff` (with a `role`) for each staff login.

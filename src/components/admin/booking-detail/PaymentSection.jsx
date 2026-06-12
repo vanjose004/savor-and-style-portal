@@ -132,7 +132,7 @@ export default function PaymentSection({ booking, onChange }) {
 
   const handleGenerateAR = async (payment) => {
     setGeneratingId(payment.id)
-    generateAcknowledgementReceiptPDF(booking, payment)
+    await generateAcknowledgementReceiptPDF(booking, payment)
 
     if (!payment.ar_generated) {
       const { error } = await supabase.from('payments').update({ ar_generated: true }).eq('id', payment.id)

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { UtensilsCrossed } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Spinner from '../components/ui/Spinner'
+import Logo from '../components/ui/Logo'
 import { BUSINESS } from '../lib/constants'
 import EventSummaryCard from '../components/client/EventSummaryCard'
 import DefaultInclusionsCard from '../components/client/DefaultInclusionsCard'
@@ -53,7 +53,7 @@ export default function ClientPortal() {
   if (notFound || !booking) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-cream px-4 text-center">
-        <UtensilsCrossed className="w-10 h-10 text-wine mb-3" />
+        <Logo className="w-12 h-12 text-wine mb-3" />
         <h1 className="text-xl font-bold text-wine mb-1">Booking Not Found</h1>
         <p className="text-sm text-text-muted">
           This link may be invalid or expired. Please contact us at {BUSINESS.phone}.
@@ -67,7 +67,7 @@ export default function ClientPortal() {
       <header className="bg-wine text-warm-white">
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="flex items-center gap-2 text-warm-white/80 mb-2">
-            <UtensilsCrossed className="w-5 h-5" />
+            <Logo className="w-5 h-5 text-warm-white" />
             <span className="font-heading font-semibold text-sm">{BUSINESS.name}</span>
           </div>
           <h1 className="text-2xl font-bold">Hello {booking.client_first_name}, here are your event details</h1>

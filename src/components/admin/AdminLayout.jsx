@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
 import { cn } from '../../lib/utils'
+import Logo from '../ui/Logo'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -43,9 +44,12 @@ export default function AdminLayout() {
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="px-6 py-5 border-b border-warm-white/10">
-          <h1 className="font-heading text-xl font-bold leading-tight">Savor and Style</h1>
-          <p className="text-xs text-warm-white/70 mt-1">{BUSINESS.displayLocation}</p>
+        <div className="px-6 py-5 border-b border-warm-white/10 flex items-center gap-3">
+          <Logo className="w-10 h-10 text-warm-white shrink-0" />
+          <div>
+            <h1 className="font-heading text-xl font-bold leading-tight">Savor and Style</h1>
+            <p className="text-xs text-warm-white/70 mt-1">{BUSINESS.displayLocation}</p>
+          </div>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -89,7 +93,10 @@ export default function AdminLayout() {
 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-warm-white border-b border-gold/20 sticky top-0 z-20">
-          <h1 className="font-heading text-lg font-bold text-wine">Savor and Style</h1>
+          <div className="flex items-center gap-2">
+            <Logo className="w-8 h-8 text-wine shrink-0" />
+            <h1 className="font-heading text-lg font-bold text-wine">Savor and Style</h1>
+          </div>
           <button onClick={() => setMobileOpen(true)} aria-label="Open menu">
             <MenuIcon className="w-6 h-6 text-wine" />
           </button>

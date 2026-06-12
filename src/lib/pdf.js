@@ -1,5 +1,6 @@
 import { jsPDF } from 'jspdf'
-import { BUSINESS, PAYMENT_TYPE_LABELS } from './constants'
+import autoTable from 'jspdf-autotable'
+import { BUSINESS, PAYMENT_TYPE_LABELS, formatFreebie } from './constants'
 import { formatDate, formatDateTime } from './utils'
 
 const PAGE_WIDTH = 210
@@ -8,6 +9,16 @@ const MARGIN = 18
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2
 const LINE_HEIGHT = 5
 
+// Brand palette (from src/index.css), as jsPDF RGB triples.
+const COLOR_WINE = [114, 47, 55]
+const COLOR_CREAM = [245, 240, 220]
+const COLOR_WARM_WHITE = [253, 250, 244]
+const COLOR_WINE_MUTED = [222, 200, 197]
+const COLOR_GOLD = [201, 168, 76]
+const COLOR_TEXT_DARK = [26, 26, 26]
+const COLOR_TEXT_MUTED = [107, 107, 107]
+const COLOR_SUCCESS = [45, 106, 79]
+
 // jsPDF's standard fonts can't render the peso sign (₱) or other symbols
 // outside WinAnsi encoding, so PDF output spells out "PHP" instead.
 function formatPhp(amount) {
@@ -15,8 +26,45 @@ function formatPhp(amount) {
   return `PHP ${value.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-function createWriter(doc) {
-  let y = MARGIN
+// /logo.png is optional — cache the decoded result (or `null` if missing) so
+// repeat PDF generations don't re-fetch.
+let cachedLogo
+async function loadLogo() {
+  if (cachedLogo !== undefined) return cachedLogo
+
+  try {
+    const response = await fetch('/logo.png')
+    if (!response.ok) throw new Error('Logo not found')
+
+    const bytes = new Uint8Array(await response.arrayBuffer())
+    // PNG IHDR chunk stores width/height as big-endian uint32s at bytes 16-23.
+    const width = (bytes[16] << 24) | (bytes[17] << 16) | (bytes[18] << 8) | bytes[19]
+    const height = (bytes[20] << 24) | (bytes[21] << 16) | (bytes[22] << 8) | bytes[23]
+
+    let binary = ''
+    const chunkSize = 0x8000
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize))
+    }
+
+    cachedLogo = { dataUrl: `data:image/png;base64,${btoa(binary)}`, width, height }
+  } catch {
+    cachedLogo = null
+  }
+
+  return cachedLogo
+}
+
+/** Draw the logo at the given position, scaled to `height`. Returns the drawn width (0 if no logo). */
+function drawLogo(doc, logo, x, y, height) {
+  if (!logo) return 0
+  const width = (logo.width / logo.height) * height
+  doc.addImage(logo.dataUrl, 'PNG', x, y, width, height)
+  return width
+}
+
+function createWriter(doc, startY = MARGIN) {
+  let y = startY
 
   function ensureSpace(height) {
     if (y + height > PAGE_HEIGHT - MARGIN) {
@@ -79,10 +127,31 @@ function createWriter(doc) {
   }
 }
 
-export function generateContractPDF(booking) {
+export async function generateContractPDF(booking) {
+  const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-  const w = createWriter(doc)
   const client = booking.clients ?? {}
+
+  let textX = MARGIN
+  if (logo) {
+    const logoHeight = 16
+    textX += drawLogo(doc, logo, MARGIN, MARGIN - 6, logoHeight) + 4
+  }
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text(BUSINESS.name, textX, MARGIN)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...COLOR_TEXT_MUTED)
+  doc.text(BUSINESS.address, textX, MARGIN + 4)
+  doc.text(`Tel: ${BUSINESS.phone}`, textX, MARGIN + 8)
+  doc.setDrawColor(...COLOR_GOLD)
+  doc.setLineWidth(0.5)
+  doc.line(MARGIN, MARGIN + 12, PAGE_WIDTH - MARGIN, MARGIN + 12)
+  doc.setTextColor(...COLOR_TEXT_DARK)
+
+  const w = createWriter(doc, MARGIN + 16)
 
   w.title('CATERING SERVICE CONTRACT AND AGREEMENT')
   w.spacer(2)
@@ -132,7 +201,7 @@ export function generateContractPDF(booking) {
 
   if (booking.freebies && booking.freebies.length > 0) {
     w.heading('FREEBIES / COMPLIMENTARY INCLUSIONS')
-    booking.freebies.forEach((item) => w.bullet(item))
+    booking.freebies.forEach((item) => w.bullet(formatFreebie(item)))
   }
 
   w.heading('GUEST COUNT')
@@ -209,43 +278,154 @@ export function generateContractPDF(booking) {
   doc.save(`Contract_${booking.booking_code}.pdf`)
 }
 
-export function generateAcknowledgementReceiptPDF(booking, payment) {
+export async function generateAcknowledgementReceiptPDF(booking, payment) {
+  const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-  const w = createWriter(doc)
   const client = booking.clients ?? {}
   const paidToDate = (Number(booking.total_amount) || 0) - (Number(booking.balance) || 0)
+  const ccFee = Number(payment.credit_card_fee) || 0
+  const amountReceived = Number(payment.amount) || 0
+  const balance = Number(booking.balance) || 0
 
-  w.title('ACKNOWLEDGEMENT RECEIPT')
-  w.spacer(2)
+  // --- Header band ---------------------------------------------------
+  const BAND_HEIGHT = 36
+  doc.setFillColor(...COLOR_WINE)
+  doc.rect(0, 0, PAGE_WIDTH, BAND_HEIGHT, 'F')
 
-  w.field('AR Number: ', payment.ar_number ?? 'N/A')
-  w.field('Date: ', formatDateTime(payment.paid_at))
-  w.field('Received from: ', client.name ?? '')
-  w.field('Contact: ', client.phone ?? 'N/A')
-  w.field('Event Date: ', formatDate(booking.event_date))
-  w.field('Event Type: ', booking.event_type)
-  w.spacer()
-
-  w.field('Amount Received: ', formatPhp(payment.amount))
-  w.field('Payment Type: ', PAYMENT_TYPE_LABELS[payment.payment_type] ?? payment.payment_type)
-  w.field('Payment Method: ', payment.payment_method)
-  w.field('Reference Number: ', payment.reference_number || 'N/A')
-  if (Number(payment.credit_card_fee) > 0) {
-    w.field('Credit Card Fee (5%): ', formatPhp(payment.credit_card_fee))
+  let textX = MARGIN
+  if (logo) {
+    const logoHeight = 20
+    textX += drawLogo(doc, logo, MARGIN, (BAND_HEIGHT - logoHeight) / 2, logoHeight) + 4
   }
-  w.spacer()
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.setTextColor(...COLOR_WARM_WHITE)
+  doc.text(BUSINESS.name, textX, 16)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...COLOR_WINE_MUTED)
+  doc.text(BUSINESS.address, textX, 21)
+  doc.text(`Tel: ${BUSINESS.phone}`, textX, 25.5)
 
-  w.field('Total Contract Amount: ', formatPhp(booking.total_amount))
-  w.field('Total Paid to Date: ', formatPhp(paidToDate))
-  w.field('Remaining Balance: ', formatPhp(booking.balance))
-  w.spacer()
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(17)
+  doc.setTextColor(...COLOR_GOLD)
+  doc.text('ACKNOWLEDGEMENT RECEIPT', PAGE_WIDTH - MARGIN, 15, { align: 'right' })
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(...COLOR_WARM_WHITE)
+  doc.text(`AR No.  ${payment.ar_number ?? 'N/A'}`, PAGE_WIDTH - MARGIN, 23, { align: 'right' })
+  doc.text(`Date  ${formatDateTime(payment.paid_at)}`, PAGE_WIDTH - MARGIN, 28, { align: 'right' })
 
-  w.paragraph(`Received by: ${BUSINESS.name}`)
-  w.paragraph(BUSINESS.address)
-  w.paragraph(`Tel: ${BUSINESS.phone}`)
-  w.spacer()
+  // --- Received From / Event Details boxes ---------------------------
+  let y = BAND_HEIGHT + 12
+  const boxHeight = 26
+  const colWidth = (CONTENT_WIDTH - 8) / 2
+  const rightX = MARGIN + colWidth + 8
 
-  w.paragraph('Note: This is an Acknowledgement Receipt only, not an Official Receipt.')
+  doc.setFillColor(...COLOR_CREAM)
+  doc.roundedRect(MARGIN, y, colWidth, boxHeight, 2, 2, 'F')
+  doc.roundedRect(rightX, y, colWidth, boxHeight, 2, 2, 'F')
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text('RECEIVED FROM', MARGIN + 5, y + 7)
+  doc.text('EVENT DETAILS', rightX + 5, y + 7)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10.5)
+  doc.setTextColor(...COLOR_TEXT_DARK)
+  doc.text(client.name ?? '', MARGIN + 5, y + 14)
+  doc.text(booking.event_type ?? '', rightX + 5, y + 14)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.setTextColor(...COLOR_TEXT_MUTED)
+  doc.text(`Contact: ${client.phone ?? 'N/A'}`, MARGIN + 5, y + 20.5)
+  doc.text(`${formatDate(booking.event_date)}  •  Booking ${booking.booking_code}`, rightX + 5, y + 20.5)
+
+  y += boxHeight + 10
+
+  // --- Payment line items ---------------------------------------------
+  let description = PAYMENT_TYPE_LABELS[payment.payment_type] ?? payment.payment_type
+  if (payment.payment_method) description += `  —  ${payment.payment_method}`
+  if (payment.reference_number) description += `\nRef. No. ${payment.reference_number}`
+
+  const rows = [[description, formatPhp(amountReceived)]]
+  if (ccFee > 0) {
+    rows.push(['Credit Card Processing Fee (5%)', formatPhp(ccFee)])
+  }
+
+  autoTable(doc, {
+    startY: y,
+    margin: { left: MARGIN, right: MARGIN },
+    head: [['Description', 'Amount']],
+    body: rows,
+    foot: [['Total Received Today', formatPhp(amountReceived + ccFee)]],
+    theme: 'plain',
+    styles: { font: 'helvetica', fontSize: 9.5, cellPadding: { top: 3.5, bottom: 3.5, left: 5, right: 5 } },
+    headStyles: { fillColor: COLOR_WINE, textColor: COLOR_WARM_WHITE, fontStyle: 'bold' },
+    bodyStyles: { lineColor: COLOR_GOLD, lineWidth: { bottom: 0.2 } },
+    footStyles: { fillColor: COLOR_CREAM, textColor: COLOR_WINE, fontStyle: 'bold', fontSize: 11 },
+    columnStyles: { 1: { halign: 'right', cellWidth: 45 } },
+  })
+
+  y = doc.lastAutoTable.finalY + 12
+
+  // --- Summary -----------------------------------------------------
+  const summaryWidth = 85
+  const summaryX = PAGE_WIDTH - MARGIN - summaryWidth
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9.5)
+  ;[
+    ['Total Contract Amount', formatPhp(booking.total_amount)],
+    ['Total Paid to Date', formatPhp(paidToDate)],
+  ].forEach(([label, value], i) => {
+    const rowY = y + i * 6.5
+    doc.setTextColor(...COLOR_TEXT_MUTED)
+    doc.text(label, summaryX, rowY)
+    doc.setFont('helvetica', 'bold')
+    doc.setTextColor(...COLOR_TEXT_DARK)
+    doc.text(value, PAGE_WIDTH - MARGIN, rowY, { align: 'right' })
+    doc.setFont('helvetica', 'normal')
+  })
+
+  const ruleY = y + 2 * 6.5 - 3.5
+  doc.setDrawColor(...COLOR_GOLD)
+  doc.setLineWidth(0.3)
+  doc.line(summaryX, ruleY, PAGE_WIDTH - MARGIN, ruleY)
+
+  const balanceY = ruleY + 7
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(11.5)
+  doc.setTextColor(...(balance > 0 ? COLOR_WINE : COLOR_SUCCESS))
+  doc.text(balance > 0 ? 'Remaining Balance' : 'Fully Paid', summaryX, balanceY)
+  doc.text(formatPhp(balance), PAGE_WIDTH - MARGIN, balanceY, { align: 'right' })
+
+  y = balanceY + 16
+
+  // --- Footer -----------------------------------------------------
+  doc.setDrawColor(...COLOR_GOLD)
+  doc.setLineWidth(0.3)
+  doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y)
+  y += 6
+
+  doc.setFont('helvetica', 'italic')
+  doc.setFontSize(8.5)
+  doc.setTextColor(...COLOR_TEXT_MUTED)
+  doc.text('This is an Acknowledgement Receipt only, not an Official Receipt.', MARGIN, y)
+  y += 5
+
+  doc.setFont('helvetica', 'normal')
+  doc.text(`Received by ${BUSINESS.name}  •  ${BUSINESS.address}  •  Tel: ${BUSINESS.phone}`, MARGIN, y)
+  y += 7
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text('Thank you for your trust!', PAGE_WIDTH / 2, y, { align: 'center' })
 
   doc.save(`AR_${payment.ar_number || booking.booking_code}.pdf`)
 }

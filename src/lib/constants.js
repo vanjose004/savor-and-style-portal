@@ -8,12 +8,14 @@ export const BUSINESS = {
 }
 
 export const EVENT_TYPES = [
-  'Birthday',
+  'Adult Birthday',
+  'Debut',
+  'Kiddie Party',
+  'Christening/Dedication',
   'Wedding',
+  'House Blessing',
   'Corporate',
-  'Binyag/Debut/Graduation',
-  'Houseblessing',
-  'Other',
+  'Others',
 ]
 
 export const BOOKING_STATUSES = ['pending', 'confirmed', 'completed', 'cancelled']
@@ -66,18 +68,37 @@ export const DEFAULT_INCLUSIONS = [
   'Water and Ice',
 ]
 
+// Default freebies catalog. Items with a `unit` get a quantity field on the
+// admin booking form (e.g. "Event Backdrop (3 panels)").
 export const DEFAULT_FREEBIES = [
-  'Backdrop',
-  'Balloons',
-  'Cake Table',
-  'Gift Table',
-  'Food Warmer',
-  'Name of Celebrant Display',
-  'Red Carpet',
-  'Panels',
-  'Flowers',
-  'Lechon',
+  { name: 'Event Backdrop', unit: 'panel' },
+  { name: 'Grass Carpet' },
+  { name: 'Balloons' },
+  { name: 'Cake Table' },
+  { name: 'Gift Table' },
+  { name: 'Extra Food Warmer', unit: 'unit' },
+  { name: 'Name of Celebrant Display' },
+  { name: 'Red Carpet' },
+  { name: 'Couch' },
+  { name: 'Couple Table' },
+  { name: 'VIP Table', unit: 'seat' },
+  { name: 'Accent Lights' },
+  { name: 'Panels', unit: 'panel' },
+  { name: 'Flowers' },
 ]
+
+/** Render a stored freebie ({ name, quantity? }) as a display label. */
+export function formatFreebie(freebie) {
+  if (!freebie) return ''
+  const { name, quantity } = freebie
+  if (!quantity) return name
+
+  const def = DEFAULT_FREEBIES.find((item) => item.name === name)
+  const unit = def?.unit
+  if (!unit) return `${name} (x${quantity})`
+
+  return `${name} (${quantity} ${unit}${quantity === 1 ? '' : 's'})`
+}
 
 export const RESERVATION_FEE = 5000
 export const CREDIT_CARD_FEE_RATE = 0.05

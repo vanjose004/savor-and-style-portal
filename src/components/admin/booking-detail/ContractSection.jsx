@@ -33,7 +33,7 @@ export default function ContractSection({ booking, onChange }) {
     <Card
       title="Contract"
       actions={
-        <Button variant="secondary" size="sm" onClick={() => generateContractPDF(booking)}>
+        <Button variant="secondary" size="sm" onClick={async () => await generateContractPDF(booking)}>
           <FileText className="w-4 h-4" />
           Generate Contract
         </Button>

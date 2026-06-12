@@ -113,7 +113,7 @@ The client portal must only show their own event. No dates, availability indicat
 | id | uuid (PK) | Unique booking ID |
 | booking_code | text | Human-readable code e.g. SS-2026-001 |
 | client_id | uuid (FK) | Reference to clients table |
-| event_type | text | Birthday, Wedding, Corporate, Binyag/Debut/Graduation, Houseblessing, Other |
+| event_type | text | Adult Birthday, Debut, Kiddie Party, Christening/Dedication, Wedding, House Blessing, Corporate, Others |
 | event_date | date | Date of the event |
 | event_time | time | Start time of event |
 | venue | text | Event venue/address |

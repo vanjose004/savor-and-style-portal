@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { UtensilsCrossed, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { BUSINESS } from '../lib/constants'
 import { supabase } from '../lib/supabase'
 import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
+import Logo from '../components/ui/Logo'
 
 const ACCESS_TOKEN_PATTERN = /^[0-9a-f]{32}$/i
 
@@ -61,7 +62,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-cream px-4 text-center">
-      <UtensilsCrossed className="w-12 h-12 text-wine mb-4" />
+      <Logo className="w-20 h-20 text-wine mb-4" />
       <h1 className="text-4xl font-bold text-wine mb-2">{BUSINESS.name}</h1>
       <p className="text-text-muted mb-8">{BUSINESS.displayLocation}</p>
       <div className="flex flex-wrap items-center justify-center gap-4">
