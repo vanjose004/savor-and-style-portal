@@ -12,6 +12,7 @@ import ClientMenuCard from '../components/client/ClientMenuCard'
 import ClientUpdatesCard from '../components/client/ClientUpdatesCard'
 import ChangeRequestCard from '../components/client/ChangeRequestCard'
 import ContractStatusCard from '../components/client/ContractStatusCard'
+import DocumentsCard from '../components/client/DocumentsCard'
 import ContactCard from '../components/client/ContactCard'
 
 export default function ClientPortal() {
@@ -84,6 +85,7 @@ export default function ClientPortal() {
         <ClientUpdatesCard accessToken={accessToken} />
         <ChangeRequestCard accessToken={accessToken} />
         <ContractStatusCard booking={booking} />
+        <DocumentsCard accessToken={accessToken} booking={booking} />
         <ContactCard />
       </main>
     </div>

@@ -5,7 +5,7 @@ import Input from '../ui/Input'
 import Select from '../ui/Select'
 import Textarea from '../ui/Textarea'
 import Button from '../ui/Button'
-import { EVENT_TYPES, BOOKING_STATUSES, RESERVATION_FEE, DEFAULT_SERVICE_HOURS } from '../../lib/constants'
+import { EVENT_TYPES, BOOKING_STATUSES, RESERVATION_FEE, DEFAULT_SERVICE_HOURS, LECHON_CHOPPING_FEE } from '../../lib/constants'
 
 const STATUS_OPTIONS = BOOKING_STATUSES.map((s) => ({
   value: s,
@@ -29,6 +29,9 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
       event_date: '',
       event_time: '',
       venue: '',
+      venue_pin_location: '',
+      venue_access_time: '',
+      venue_contact_number: '',
       event_motif: '',
       pax: '',
       special_requests: '',
@@ -74,13 +77,25 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
             {...register('event_date', { required: 'Event date is required' })}
           />
           <Input label="Event Time" type="time" {...register('event_time')} />
-          <Input label="Venue" {...register('venue')} />
           <Input label="Event Motif" placeholder="e.g. Rustic Garden" {...register('event_motif')} />
           <Input label="Number of Pax" type="number" min="0" {...register('pax', { valueAsNumber: true })} />
           <Select label="Status" options={STATUS_OPTIONS} {...register('status')} />
         </div>
         <div className="mt-4">
           <Textarea label="Special Requests" {...register('special_requests')} />
+        </div>
+      </Card>
+
+      <Card title="Venue Information">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <Input label="Venue Name" {...register('venue')} />
+          <Input label="Venue Contact Number" {...register('venue_contact_number')} />
+          <Input
+            label="Venue Pin Location"
+            placeholder="Google Maps link or address"
+            {...register('venue_pin_location')}
+          />
+          <Input label="Venue Access Time" placeholder="e.g. 8:00 AM" {...register('venue_access_time')} />
         </div>
       </Card>
 
@@ -94,7 +109,7 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
           />
           <label className="flex items-center gap-2 text-sm font-medium text-text-dark pb-2">
             <input type="checkbox" className={CHECKBOX_CLASS} {...register('lechon_chopping')} />
-            Lechon Chopping (₱{300} fee)
+            Client Has Lechon (adds ₱{LECHON_CHOPPING_FEE} chopping fee note)
           </label>
           <label className="flex items-center gap-2 text-sm font-medium text-text-dark pb-2">
             <input type="checkbox" className={CHECKBOX_CLASS} {...register('menu_confirmed')} />

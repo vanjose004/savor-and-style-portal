@@ -1,7 +1,7 @@
 import { jsPDF } from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { BUSINESS, PAYMENT_TYPE_LABELS, formatFreebie } from './constants'
-import { formatDate, formatDateTime } from './utils'
+import { BUSINESS, PAYMENT_TYPE_LABELS, MENU_CATEGORIES, DEFAULT_INCLUSIONS, LECHON_NOTE, formatFreebie } from './constants'
+import { formatDate, formatTime, formatDateTime } from './utils'
 
 const PAGE_WIDTH = 210
 const PAGE_HEIGHT = 297
@@ -63,6 +63,24 @@ function drawLogo(doc, logo, x, y, height) {
   return width
 }
 
+// Admin queries return `booking.clients.{name,phone,address}`, while the
+// client-portal RPC returns flat `booking.client_*` fields — this normalizes
+// either shape so PDF generators can run from both contexts.
+function getClientInfo(booking) {
+  if (booking.clients) {
+    return {
+      name: booking.clients.name ?? '',
+      phone: booking.clients.phone ?? '',
+      address: booking.clients.address ?? '',
+    }
+  }
+  return {
+    name: booking.client_name ?? '',
+    phone: booking.client_phone ?? '',
+    address: booking.client_address ?? '',
+  }
+}
+
 function createWriter(doc, startY = MARGIN) {
   let y = startY
 
@@ -113,13 +131,64 @@ function createWriter(doc, startY = MARGIN) {
       })
     },
     field(label, value) {
-      ensureSpace(LINE_HEIGHT)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(9.5)
-      doc.text(label, MARGIN, y)
+      const labelWidth = doc.getTextWidth(label) + 1
       doc.setFont('helvetica', 'normal')
-      doc.text(String(value ?? ''), MARGIN + doc.getTextWidth(label) + 1, y)
+      const lines = doc.splitTextToSize(String(value ?? ''), CONTENT_WIDTH - labelWidth)
+      lines.forEach((line, i) => {
+        ensureSpace(LINE_HEIGHT)
+        if (i === 0) {
+          doc.setFont('helvetica', 'bold')
+          doc.text(label, MARGIN, y)
+          doc.setFont('helvetica', 'normal')
+        }
+        doc.text(line, MARGIN + labelWidth, y)
+        y += LINE_HEIGHT
+      })
+    },
+    // Up to a few label/value pairs on one line, each in an equal-width column.
+    fieldRow(pairs) {
+      ensureSpace(LINE_HEIGHT)
+      const colWidth = CONTENT_WIDTH / pairs.length
+      doc.setFontSize(9.5)
+      pairs.forEach(([label, value], i) => {
+        const x = MARGIN + i * colWidth
+        doc.setFont('helvetica', 'bold')
+        doc.text(label, x, y)
+        doc.setFont('helvetica', 'normal')
+        doc.text(String(value ?? '—'), x + doc.getTextWidth(label) + 1, y)
+      })
       y += LINE_HEIGHT
+    },
+    // Full-width wine section header bar with cream/white text.
+    band(text) {
+      const BAND_HEIGHT = 7
+      ensureSpace(BAND_HEIGHT + 4)
+      doc.setFillColor(...COLOR_WINE)
+      doc.rect(MARGIN, y, CONTENT_WIDTH, BAND_HEIGHT, 'F')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.setTextColor(...COLOR_WARM_WHITE)
+      doc.text(text, MARGIN + 3, y + BAND_HEIGHT - 2.2)
+      y += BAND_HEIGHT + 4
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9.5)
+      doc.setTextColor(...COLOR_TEXT_DARK)
+    },
+    // Bold, colored callout line (e.g. the lechon chopping fee note).
+    note(text, color = COLOR_WINE) {
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9.5)
+      doc.setTextColor(...color)
+      const lines = doc.splitTextToSize(text, CONTENT_WIDTH)
+      lines.forEach((line) => {
+        ensureSpace(LINE_HEIGHT)
+        doc.text(line, MARGIN, y)
+        y += LINE_HEIGHT
+      })
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(...COLOR_TEXT_DARK)
     },
     spacer(amount = LINE_HEIGHT) {
       y += amount
@@ -130,7 +199,7 @@ function createWriter(doc, startY = MARGIN) {
 export async function generateContractPDF(booking) {
   const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-  const client = booking.clients ?? {}
+  const client = getClientInfo(booking)
 
   let textX = MARGIN
   if (logo) {
@@ -281,7 +350,7 @@ export async function generateContractPDF(booking) {
 export async function generateAcknowledgementReceiptPDF(booking, payment) {
   const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-  const client = booking.clients ?? {}
+  const client = getClientInfo(booking)
   const paidToDate = (Number(booking.total_amount) || 0) - (Number(booking.balance) || 0)
   const ccFee = Number(payment.credit_card_fee) || 0
   const amountReceived = Number(payment.amount) || 0
@@ -428,4 +497,122 @@ export async function generateAcknowledgementReceiptPDF(booking, payment) {
   doc.text('Thank you for your trust!', PAGE_WIDTH / 2, y, { align: 'center' })
 
   doc.save(`AR_${payment.ar_number || booking.booking_code}.pdf`)
+}
+
+export async function generateBookingFormPDF(booking, menuItems = []) {
+  const logo = await loadLogo()
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+  const client = getClientInfo(booking)
+
+  // Cream background on every page, including pages added by ensureSpace.
+  const paintBackground = () => {
+    doc.setFillColor(...COLOR_CREAM)
+    doc.rect(0, 0, PAGE_WIDTH, PAGE_HEIGHT, 'F')
+  }
+  paintBackground()
+  const addPage = doc.addPage.bind(doc)
+  doc.addPage = (...args) => {
+    addPage(...args)
+    paintBackground()
+  }
+
+  // --- Header ---------------------------------------------------------
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(20)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text('BOOKING FORM', MARGIN, MARGIN + 3)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.setTextColor(...COLOR_TEXT_MUTED)
+  doc.text(`${BUSINESS.name}, Formerly Estrella's Catering Services`, MARGIN, MARGIN + 9)
+
+  if (logo) {
+    const logoHeight = 18
+    drawLogo(doc, logo, PAGE_WIDTH - MARGIN - (logo.width / logo.height) * logoHeight, MARGIN - 6, logoHeight)
+  }
+
+  doc.setDrawColor(...COLOR_WINE)
+  doc.setLineWidth(0.6)
+  doc.line(MARGIN, MARGIN + 13, PAGE_WIDTH - MARGIN, MARGIN + 13)
+  doc.setTextColor(...COLOR_TEXT_DARK)
+
+  const w = createWriter(doc, MARGIN + 19)
+
+  // --- Client Information -----------------------------------------------
+  w.band('CLIENT INFORMATION')
+  w.fieldRow([
+    ['Name:', client.name || '—'],
+    ['Contact Number:', client.phone || '—'],
+  ])
+  w.field('Address:', client.address || '—')
+
+  // --- Event Information --------------------------------------------------
+  w.band('EVENT INFORMATION')
+  w.fieldRow([
+    ['Event Type:', booking.event_type || '—'],
+    ['Date:', formatDate(booking.event_date)],
+  ])
+  w.fieldRow([
+    ['Number of Guests:', booking.pax ?? '—'],
+    ['Start Time:', booking.event_time ? formatTime(booking.event_time) : '—'],
+  ])
+  w.field('Theme / Motif:', booking.event_motif || '—')
+
+  // --- Venue Information -----------------------------------------------
+  w.band('VENUE INFORMATION')
+  w.fieldRow([
+    ['Venue Name:', booking.venue || '—'],
+    ['Contact Number:', booking.venue_contact_number || '—'],
+  ])
+  w.field('Pin Location:', booking.venue_pin_location || '—')
+  w.field('Access Time:', booking.venue_access_time || '—')
+
+  // --- Menu -----------------------------------------------------------------
+  w.band('MENU')
+  const confirmedDishes = menuItems.filter((item) => item.status === 'confirmed')
+  if (confirmedDishes.length === 0) {
+    w.paragraph('No dishes confirmed yet.')
+  } else {
+    MENU_CATEGORIES.forEach((category) => {
+      const dishes = confirmedDishes.filter((item) => item.category === category)
+      if (dishes.length === 0) return
+      w.field(`${category}:`, dishes.map((dish) => dish.dish_name).join(', '))
+    })
+  }
+
+  // --- Payments ---------------------------------------------------------------
+  w.band('PAYMENTS')
+  const paidToDate = (Number(booking.total_amount) || 0) - (Number(booking.balance) || 0)
+  w.fieldRow([
+    ['Total Contract Cost:', formatPhp(booking.total_amount)],
+    ['Total Payment Made:', formatPhp(paidToDate)],
+  ])
+  w.fieldRow([
+    ['Balance:', formatPhp(booking.balance)],
+    ['As of Date:', formatDate(new Date().toISOString().slice(0, 10))],
+  ])
+
+  // --- Other Inclusions / Requests / Notes -------------------------------------
+  w.band('OTHER INCLUSIONS / REQUESTS / NOTES')
+
+  w.heading('Default Inclusions')
+  DEFAULT_INCLUSIONS.forEach((item) => w.bullet(item))
+
+  if (booking.freebies && booking.freebies.length > 0) {
+    w.heading('Freebies')
+    booking.freebies.forEach((item) => w.bullet(formatFreebie(item)))
+  }
+
+  if (booking.lechon_chopping) {
+    w.spacer(2)
+    w.note(LECHON_NOTE)
+  }
+
+  if (booking.special_requests) {
+    w.heading('Special Requests')
+    w.paragraph(booking.special_requests)
+  }
+
+  doc.save(`BookingForm_${booking.booking_code}.pdf`)
 }

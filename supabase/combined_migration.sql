@@ -88,11 +88,23 @@ create table bookings (
   booking_code text not null unique,
   client_id uuid not null references clients(id) on delete restrict,
   event_type text not null check (
-    event_type in ('Birthday', 'Wedding', 'Corporate', 'Binyag/Debut/Graduation', 'Houseblessing', 'Other')
+    event_type in (
+      'Adult Birthday',
+      'Debut',
+      'Kiddie Party',
+      'Christening/Dedication',
+      'Wedding',
+      'House Blessing',
+      'Corporate',
+      'Others'
+    )
   ),
   event_date date not null,
   event_time time,
   venue text,
+  venue_pin_location text,
+  venue_access_time text,
+  venue_contact_number text,
   pax integer,
   status booking_status not null default 'pending',
   menu_confirmed boolean not null default false,
@@ -692,11 +704,21 @@ returns table (
   payment_type text,
   payment_method text,
   reference_number text,
+  credit_card_fee numeric,
   paid_at timestamptz,
   ar_number text,
   ar_generated boolean
 ) as $$
-  select p.id, p.amount, p.payment_type, p.payment_method, p.reference_number, p.paid_at, p.ar_number, p.ar_generated
+  select
+    p.id,
+    p.amount,
+    p.payment_type,
+    p.payment_method,
+    p.reference_number,
+    p.credit_card_fee,
+    p.paid_at,
+    p.ar_number,
+    p.ar_generated
   from payments p
   join bookings b on b.id = p.booking_id
   where b.access_token = p_access_token
@@ -893,6 +915,9 @@ returns table (
   event_date date,
   event_time time,
   venue text,
+  venue_pin_location text,
+  venue_access_time text,
+  venue_contact_number text,
   pax integer,
   status booking_status,
   menu_confirmed boolean,
@@ -907,7 +932,9 @@ returns table (
   event_motif text,
   freebies jsonb,
   client_name text,
-  client_first_name text
+  client_first_name text,
+  client_phone text,
+  client_address text
 ) as $$
   select
     b.id,
@@ -916,6 +943,9 @@ returns table (
     b.event_date,
     b.event_time,
     b.venue,
+    b.venue_pin_location,
+    b.venue_access_time,
+    b.venue_contact_number,
     b.pax,
     b.status,
     b.menu_confirmed,
@@ -930,7 +960,9 @@ returns table (
     b.event_motif,
     b.freebies,
     c.name,
-    split_part(c.name, ' ', 1)
+    split_part(c.name, ' ', 1),
+    c.phone,
+    c.address
   from bookings b
   join clients c on c.id = b.client_id
   where b.access_token = p_access_token;

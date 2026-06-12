@@ -9,6 +9,7 @@ import Spinner from '../../components/ui/Spinner'
 import StatusBadge from '../../components/ui/StatusBadge'
 import Field from '../../components/ui/Field'
 import { formatDate, formatTime } from '../../lib/utils'
+import { LECHON_NOTE } from '../../lib/constants'
 import MenuSection from '../../components/admin/booking-detail/MenuSection'
 import FreebiesSection from '../../components/admin/booking-detail/FreebiesSection'
 import PaymentSection from '../../components/admin/booking-detail/PaymentSection'
@@ -97,18 +98,51 @@ export default function BookingDetail() {
               <Field label="Event Type" value={booking.event_type} />
               <Field label="Date" value={formatDate(booking.event_date)} />
               <Field label="Time" value={booking.event_time ? formatTime(booking.event_time) : '—'} />
-              <Field label="Venue" value={booking.venue || '—'} />
               <Field label="Event Motif" value={booking.event_motif || '—'} />
               <Field label="Pax" value={booking.pax ?? '—'} />
               <Field label="Service Hours" value={booking.service_hours} />
-              <Field label="Lechon Chopping" value={booking.lechon_chopping ? 'Yes (+₱300 fee)' : 'No'} />
+              <Field label="Client Has Lechon" value={booking.lechon_chopping ? 'Yes' : 'No'} />
             </dl>
+            {booking.lechon_chopping && (
+              <div className="mt-4 pt-4 border-t border-gold/10">
+                <p className="text-sm text-wine font-medium">{LECHON_NOTE}</p>
+              </div>
+            )}
             {booking.special_requests && (
               <div className="mt-4 pt-4 border-t border-gold/10">
                 <p className="text-text-muted text-sm mb-1">Special Requests</p>
                 <p className="text-sm text-text-dark whitespace-pre-wrap">{booking.special_requests}</p>
               </div>
             )}
+          </Card>
+
+          <Card title="Venue Information">
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+              <Field label="Venue Name" value={booking.venue || '—'} />
+              <Field label="Venue Contact Number" value={booking.venue_contact_number || '—'} />
+              <Field label="Access Time" value={booking.venue_access_time || '—'} />
+              <Field
+                label="Pin Location"
+                value={
+                  booking.venue_pin_location ? (
+                    /^https?:\/\//i.test(booking.venue_pin_location) ? (
+                      <a
+                        href={booking.venue_pin_location}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-wine hover:underline break-all"
+                      >
+                        {booking.venue_pin_location}
+                      </a>
+                    ) : (
+                      booking.venue_pin_location
+                    )
+                  ) : (
+                    '—'
+                  )
+                }
+              />
+            </dl>
           </Card>
 
           <MenuSection bookingId={booking.id} menuConfirmed={booking.menu_confirmed} onChange={loadBooking} />

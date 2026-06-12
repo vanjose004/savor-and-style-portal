@@ -106,6 +106,10 @@ export const DEFAULT_SERVICE_HOURS = 5
 export const EXTRA_HOUR_RATE_PER_STAFF = 100
 export const LECHON_CHOPPING_FEE = 300
 
+// Shown wherever lechon_chopping is true — on the booking detail page and in
+// the "Other Inclusions / Requests / Notes" section of the Booking Form PDF.
+export const LECHON_NOTE = `Lechon chopping fee: ₱${LECHON_CHOPPING_FEE} payable directly to staff`
+
 export const PAYMENT_TYPE_LABELS = {
   reservation_fee: 'Reservation Fee',
   downpayment: 'Downpayment',
