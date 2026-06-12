@@ -11,6 +11,7 @@ export default function EventSummaryCard({ booking }) {
         <Field label="Date" value={formatDate(booking.event_date)} />
         <Field label="Time" value={booking.event_time ? formatTime(booking.event_time) : 'TBD'} />
         <Field label="Venue" value={booking.venue || 'TBD'} />
+        <Field label="Event Motif" value={booking.event_motif || 'TBD'} />
         <Field label="Guests" value={booking.pax ?? 'TBD'} />
       </dl>
       {booking.special_requests && (

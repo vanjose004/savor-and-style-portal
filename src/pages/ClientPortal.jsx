@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase'
 import Spinner from '../components/ui/Spinner'
 import { BUSINESS } from '../lib/constants'
 import EventSummaryCard from '../components/client/EventSummaryCard'
+import DefaultInclusionsCard from '../components/client/DefaultInclusionsCard'
+import FreebiesCard from '../components/client/FreebiesCard'
 import PaymentStatusCard from '../components/client/PaymentStatusCard'
 import ClientMenuCard from '../components/client/ClientMenuCard'
 import ClientUpdatesCard from '../components/client/ClientUpdatesCard'
@@ -75,6 +77,8 @@ export default function ClientPortal() {
 
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         <EventSummaryCard booking={booking} />
+        <DefaultInclusionsCard />
+        <FreebiesCard freebies={booking.freebies} />
         <PaymentStatusCard accessToken={accessToken} booking={booking} />
         <ClientMenuCard accessToken={accessToken} menuConfirmed={booking.menu_confirmed} />
         <ClientUpdatesCard accessToken={accessToken} />

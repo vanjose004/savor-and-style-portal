@@ -87,6 +87,7 @@ export default function BookingEdit() {
     event_date: booking.event_date,
     event_time: booking.event_time ? booking.event_time.slice(0, 5) : '',
     venue: booking.venue ?? '',
+    event_motif: booking.event_motif ?? '',
     pax: booking.pax ?? '',
     special_requests: booking.special_requests ?? '',
     status: booking.status,

@@ -29,6 +29,7 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
       event_date: '',
       event_time: '',
       venue: '',
+      event_motif: '',
       pax: '',
       special_requests: '',
       status: 'pending',
@@ -74,6 +75,7 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
           />
           <Input label="Event Time" type="time" {...register('event_time')} />
           <Input label="Venue" {...register('venue')} />
+          <Input label="Event Motif" placeholder="e.g. Rustic Garden" {...register('event_motif')} />
           <Input label="Number of Pax" type="number" min="0" {...register('pax', { valueAsNumber: true })} />
           <Select label="Status" options={STATUS_OPTIONS} {...register('status')} />
         </div>

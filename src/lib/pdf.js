@@ -130,6 +130,11 @@ export function generateContractPDF(booking) {
   w.bullet('Menu availability depends on market supply.')
   w.bullet('Late changes are subject to availability.')
 
+  if (booking.freebies && booking.freebies.length > 0) {
+    w.heading('FREEBIES / COMPLIMENTARY INCLUSIONS')
+    booking.freebies.forEach((item) => w.bullet(item))
+  }
+
   w.heading('GUEST COUNT')
   w.bullet('Final guest count cannot be reduced.')
   w.bullet('Additional guests will be charged accordingly.')

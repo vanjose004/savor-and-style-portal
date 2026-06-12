@@ -23,6 +23,7 @@ export function splitBookingFormValues(values, { wasContractSigned = false } = {
     event_date: values.event_date,
     event_time: values.event_time || null,
     venue: values.venue?.trim() || null,
+    event_motif: values.event_motif?.trim() || null,
     pax: Number.isFinite(values.pax) ? values.pax : null,
     status: values.status,
     menu_confirmed: values.menu_confirmed,

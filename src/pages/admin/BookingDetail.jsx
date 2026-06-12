@@ -10,6 +10,7 @@ import StatusBadge from '../../components/ui/StatusBadge'
 import Field from '../../components/ui/Field'
 import { formatDate, formatTime } from '../../lib/utils'
 import MenuSection from '../../components/admin/booking-detail/MenuSection'
+import FreebiesSection from '../../components/admin/booking-detail/FreebiesSection'
 import PaymentSection from '../../components/admin/booking-detail/PaymentSection'
 import ContractSection from '../../components/admin/booking-detail/ContractSection'
 import UpdatesTimeline from '../../components/admin/booking-detail/UpdatesTimeline'
@@ -97,6 +98,7 @@ export default function BookingDetail() {
               <Field label="Date" value={formatDate(booking.event_date)} />
               <Field label="Time" value={booking.event_time ? formatTime(booking.event_time) : '—'} />
               <Field label="Venue" value={booking.venue || '—'} />
+              <Field label="Event Motif" value={booking.event_motif || '—'} />
               <Field label="Pax" value={booking.pax ?? '—'} />
               <Field label="Service Hours" value={booking.service_hours} />
               <Field label="Lechon Chopping" value={booking.lechon_chopping ? 'Yes (+₱300 fee)' : 'No'} />
@@ -110,6 +112,7 @@ export default function BookingDetail() {
           </Card>
 
           <MenuSection bookingId={booking.id} menuConfirmed={booking.menu_confirmed} onChange={loadBooking} />
+          <FreebiesSection booking={booking} onChange={loadBooking} />
           <PaymentSection booking={booking} onChange={loadBooking} />
           <ContractSection booking={booking} onChange={loadBooking} />
           <UpdatesTimeline bookingId={booking.id} />

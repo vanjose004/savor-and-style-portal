@@ -59,6 +59,26 @@ export const STAFF_ROLES = ['waiter', 'team_leader', 'cook', 'driver']
 
 export const CHECKLIST_CATEGORIES = ['setup', 'food_prep', 'equipment', 'service', 'cleanup']
 
+export const DEFAULT_INCLUSIONS = [
+  'Tables and Chairs with Cloths',
+  'Complete Flatware and Silverwares',
+  'Waiter Service and Food Servers',
+  'Water and Ice',
+]
+
+export const DEFAULT_FREEBIES = [
+  'Backdrop',
+  'Balloons',
+  'Cake Table',
+  'Gift Table',
+  'Food Warmer',
+  'Name of Celebrant Display',
+  'Red Carpet',
+  'Panels',
+  'Flowers',
+  'Lechon',
+]
+
 export const RESERVATION_FEE = 5000
 export const CREDIT_CARD_FEE_RATE = 0.05
 export const DEFAULT_SERVICE_HOURS = 5
