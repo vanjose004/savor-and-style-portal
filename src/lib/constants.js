@@ -174,6 +174,7 @@ export const COE_PURPOSES = [
   'Government Requirements',
   'Travel Requirements',
   'Rental Application',
+  'Employment Purposes',
   'Others',
 ]
 
