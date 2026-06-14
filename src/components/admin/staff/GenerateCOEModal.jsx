@@ -10,15 +10,22 @@ import { generateCOEPDF } from '../../../lib/pdf'
 
 export default function GenerateCOEModal({ open, onClose, staff }) {
   const { showToast } = useToast()
-  const [purpose, setPurpose] = useState(COE_PURPOSES[0])
+  const [purpose, setPurpose] = useState('')
+  const [purposeError, setPurposeError] = useState('')
   const [generating, setGenerating] = useState(false)
 
   const handleClose = () => {
-    setPurpose(COE_PURPOSES[0])
+    setPurpose('')
+    setPurposeError('')
     onClose()
   }
 
   const handleGenerate = async () => {
+    if (!purpose) {
+      setPurposeError('Please select a purpose.')
+      return
+    }
+
     setGenerating(true)
     try {
       await generateCOEPDF(staff, purpose)
@@ -66,9 +73,14 @@ export default function GenerateCOEModal({ open, onClose, staff }) {
 
           <Select
             label="Purpose"
+            placeholder="Select a purpose…"
             options={COE_PURPOSES}
             value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
+            error={purposeError}
+            onChange={(e) => {
+              setPurpose(e.target.value)
+              setPurposeError('')
+            }}
           />
         </div>
       )}
