@@ -685,13 +685,16 @@ export async function generateCOEPDF(staffMember, purpose) {
 
   const position = STAFF_ROLE_LABELS[staffMember.role] ?? staffMember.role
   const startDate = staffMember.start_date ? formatDate(staffMember.start_date) : 'N/A'
+  const employmentPeriod = staffMember.end_date
+    ? `from ${startDate} to ${formatDate(staffMember.end_date)}`
+    : `from ${startDate} to present`
   const issuedDate = formatDate(new Date().toISOString().slice(0, 10))
 
   w.paragraph('TO WHOM IT MAY CONCERN:')
   w.spacer(2)
   w.paragraph(
     `This is to certify that ${staffMember.name} is a bona fide staff member of ${BUSINESS.legalName}, ` +
-      `operating as ${BUSINESS.name}, holding the position of ${position} from ${startDate} up to the present.`
+      `operating as ${BUSINESS.name}, holding the position of ${position} ${employmentPeriod}.`
   )
   w.spacer(2)
   w.paragraph(

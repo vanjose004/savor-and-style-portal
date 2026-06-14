@@ -53,6 +53,7 @@ export default function GenerateCOEModal({ open, onClose, staff }) {
             <Field label="Name" value={staff.name} />
             <Field label="Position" value={STAFF_ROLE_LABELS[staff.role] ?? staff.role} />
             <Field label="Start Date" value={staff.start_date ? formatDate(staff.start_date) : '—'} />
+            <Field label="End Date" value={staff.end_date ? formatDate(staff.end_date) : 'Present'} />
             <Field label="Issued Date" value={formatDate(new Date().toISOString().slice(0, 10))} />
           </dl>
 
