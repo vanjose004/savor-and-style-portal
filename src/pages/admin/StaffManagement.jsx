@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChefHat, Plus, Pencil, Trash2 } from 'lucide-react'
+import { ChefHat, Plus, Pencil, Trash2, FileText } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import Card from '../../components/ui/Card'
@@ -9,6 +9,7 @@ import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
 import StaffFormModal from '../../components/admin/staff/StaffFormModal'
+import GenerateCOEModal from '../../components/admin/staff/GenerateCOEModal'
 import { STAFF_ROLE_LABELS } from '../../lib/constants'
 
 export default function StaffManagement() {
@@ -18,6 +19,7 @@ export default function StaffManagement() {
   const [formTarget, setFormTarget] = useState(undefined)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [coeTarget, setCoeTarget] = useState(null)
 
   const load = async () => {
     setLoading(true)
@@ -111,6 +113,14 @@ export default function StaffManagement() {
                   {member.is_active ? 'Deactivate' : 'Activate'}
                 </Button>
                 <Button
+                  variant="secondary"
+                  size="sm"
+                  aria-label={`Generate COE for ${member.name}`}
+                  onClick={() => setCoeTarget(member)}
+                >
+                  <FileText className="w-4 h-4" /> COE
+                </Button>
+                <Button
                   variant="ghost"
                   size="sm"
                   aria-label={`Edit ${member.name}`}
@@ -139,6 +149,8 @@ export default function StaffManagement() {
         staff={formTarget}
         onSaved={load}
       />
+
+      <GenerateCOEModal open={!!coeTarget} onClose={() => setCoeTarget(null)} staff={coeTarget} />
 
       <Modal
         open={!!deleteTarget}

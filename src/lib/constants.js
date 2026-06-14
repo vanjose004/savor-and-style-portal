@@ -5,6 +5,7 @@ export const BUSINESS = {
   displayLocation: 'Sta. Maria, Bulacan | Serving Metro Manila & Nearby Areas',
   phone: '0948-599-2866',
   facebook: 'Savor and Style Catering Services',
+  facebookUrl: 'https://www.facebook.com/EstrellasCateringServices/',
 }
 
 export const EVENT_TYPES = [
@@ -161,6 +162,20 @@ export const STAFF_ROLE_LABELS = {
   cook: 'Cook',
   driver: 'Driver',
 }
+
+// Purpose options for the Certificate of Employment (COE) generator on the
+// Staff Management page.
+export const COE_PURPOSES = [
+  'Bank Loan',
+  'Motor Loan',
+  'Housing Loan',
+  'Visa Application',
+  'School Requirements',
+  'Government Requirements',
+  'Travel Requirements',
+  'Rental Application',
+  'Others',
+]
 
 export const CHECKLIST_CATEGORY_LABELS = {
   setup: 'Setup',

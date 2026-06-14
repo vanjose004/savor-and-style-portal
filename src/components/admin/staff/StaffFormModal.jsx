@@ -18,7 +18,9 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: { name: '', role: STAFF_ROLES[0], phone: '', email: '', password: '' } })
+  } = useForm({
+    defaultValues: { name: '', role: STAFF_ROLES[0], phone: '', email: '', start_date: '', password: '' },
+  })
 
   useEffect(() => {
     if (!open) return
@@ -27,6 +29,7 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
       role: staff?.role ?? STAFF_ROLES[0],
       phone: staff?.phone ?? '',
       email: staff?.email ?? '',
+      start_date: staff?.start_date ?? '',
       password: '',
     })
   }, [open, staff, reset])
@@ -40,6 +43,7 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
           role: values.role,
           phone: values.phone?.trim() || null,
           email: values.email?.trim() || null,
+          start_date: values.start_date || null,
         })
         .eq('id', staff.id)
 
@@ -67,6 +71,7 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
         role: values.role,
         phone: values.phone?.trim() || null,
         email: values.email.trim(),
+        start_date: values.start_date || null,
       })
 
       if (error) {
@@ -101,6 +106,7 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
         <Input label="Name" error={errors.name?.message} {...register('name', { required: 'Name is required' })} />
         <Select label="Role" options={ROLE_OPTIONS} {...register('role', { required: true })} />
         <Input label="Phone" {...register('phone')} />
+        <Input label="Start Date" type="date" {...register('start_date')} />
         <Input
           label="Email"
           type="email"

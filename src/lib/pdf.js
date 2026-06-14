@@ -7,6 +7,7 @@ import {
   DEFAULT_INCLUSIONS,
   LECHON_NOTE,
   KIDS_EVENT_TYPES,
+  STAFF_ROLE_LABELS,
   formatFreebie,
 } from './constants'
 import { formatDate, formatTime, formatDateTime } from './utils'
@@ -636,4 +637,74 @@ export async function generateBookingFormPDF(booking, menuItems = []) {
   }
 
   doc.save(`BookingForm_${booking.booking_code}.pdf`)
+}
+
+export async function generateCOEPDF(staffMember, purpose) {
+  const logo = await loadLogo()
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+
+  let textX = MARGIN
+  if (logo) {
+    const logoHeight = 18
+    textX += drawLogo(doc, logo, MARGIN, MARGIN - 5, logoHeight) + 4
+  }
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(12)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text(BUSINESS.legalName, textX, MARGIN - 1)
+  doc.setFontSize(9)
+  doc.text(`(${BUSINESS.name})`, textX, MARGIN + 3)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...COLOR_TEXT_MUTED)
+  doc.text(BUSINESS.address, textX, MARGIN + 7)
+  doc.text(`Tel: ${BUSINESS.phone}  |  ${BUSINESS.facebookUrl}`, textX, MARGIN + 11)
+
+  // "HIGHLY CONFIDENTIAL" badge, top-right corner.
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8.5)
+  doc.setTextColor(...COLOR_WINE)
+  const labelText = 'HIGHLY CONFIDENTIAL'
+  const labelWidth = doc.getTextWidth(labelText) + 6
+  doc.setDrawColor(...COLOR_WINE)
+  doc.setLineWidth(0.4)
+  doc.rect(PAGE_WIDTH - MARGIN - labelWidth, MARGIN - 6, labelWidth, 6)
+  doc.text(labelText, PAGE_WIDTH - MARGIN - labelWidth / 2, MARGIN - 2, { align: 'center' })
+
+  doc.setDrawColor(...COLOR_GOLD)
+  doc.setLineWidth(0.5)
+  doc.line(MARGIN, MARGIN + 15, PAGE_WIDTH - MARGIN, MARGIN + 15)
+  doc.setTextColor(...COLOR_TEXT_DARK)
+
+  const w = createWriter(doc, MARGIN + 24)
+
+  w.title('CERTIFICATION')
+  w.spacer(3)
+
+  const position = STAFF_ROLE_LABELS[staffMember.role] ?? staffMember.role
+  const startDate = staffMember.start_date ? formatDate(staffMember.start_date) : 'N/A'
+  const issuedDate = formatDate(new Date().toISOString().slice(0, 10))
+
+  w.paragraph('TO WHOM IT MAY CONCERN:')
+  w.spacer(2)
+  w.paragraph(
+    `This is to certify that ${staffMember.name} is a bona fide staff member of ${BUSINESS.legalName}, ` +
+      `operating as ${BUSINESS.name}, holding the position of ${position} from ${startDate} up to the present.`
+  )
+  w.spacer(2)
+  w.paragraph(
+    `This certification is issued upon the request of ${staffMember.name} for ${purpose} purposes only, and ` +
+      'is considered HIGHLY CONFIDENTIAL.'
+  )
+  w.spacer(2)
+  w.paragraph(`Issued this ${issuedDate} at Santa Maria, Bulacan, Philippines.`)
+
+  w.spacer(20)
+  w.paragraph('_____________________________')
+  w.paragraph('Van Joseph Estrella')
+  w.paragraph('Owner')
+
+  doc.save(`COE_${staffMember.name.replace(/\s+/g, '_')}.pdf`)
 }
