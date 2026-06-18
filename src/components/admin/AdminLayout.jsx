@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
+  Calendar,
   CalendarDays,
   Users,
   ChefHat,
@@ -19,6 +20,7 @@ import Logo from '../ui/Logo'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/calendar', label: 'Calendar', icon: Calendar },
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
   { to: '/admin/clients', label: 'Clients', icon: Users },
   { to: '/admin/staff', label: 'Staff', icon: ChefHat },

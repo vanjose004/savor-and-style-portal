@@ -8,6 +8,7 @@ import StaffLayout from './components/staff/StaffLayout'
 import Home from './pages/Home'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import Calendar from './pages/admin/Calendar'
 import BookingsList from './pages/admin/BookingsList'
 import BookingNew from './pages/admin/BookingNew'
 import BookingEdit from './pages/admin/BookingEdit'
@@ -42,6 +43,7 @@ function App() {
             <Route element={<RequireAdmin />}>
               <Route element={<AdminLayout />}>
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/calendar" element={<Calendar />} />
                 <Route path="/admin/bookings" element={<BookingsList />} />
                 <Route path="/admin/bookings/new" element={<BookingNew />} />
                 <Route path="/admin/bookings/:id" element={<BookingDetail />} />
