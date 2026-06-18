@@ -3,10 +3,13 @@ import { Navigate, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
+import { supabase } from '../../lib/supabase'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Card from '../../components/ui/Card'
 import { BUSINESS } from '../../lib/constants'
+
+const INVALID_LOGIN_MESSAGE = 'Invalid username or password.'
 
 export default function StaffLogin() {
   const { signIn, user, isStaff, loading } = useAuth()
@@ -23,14 +26,26 @@ export default function StaffLogin() {
     return <Navigate to="/staff/dashboard" replace />
   }
 
-  const onSubmit = async ({ email, password }) => {
+  const onSubmit = async ({ username, password }) => {
     setSubmitting(true)
     setFormError(null)
+
+    // Staff log in with a username, not an email — resolve it to the
+    // underlying Supabase Auth email first, then sign in as normal.
+    const { data: email, error: lookupError } = await supabase.rpc('get_email_for_username', {
+      p_username: username,
+    })
+
+    if (lookupError || !email) {
+      setFormError(INVALID_LOGIN_MESSAGE)
+      setSubmitting(false)
+      return
+    }
 
     const { error } = await signIn(email, password)
 
     if (error) {
-      setFormError(error.message)
+      setFormError(INVALID_LOGIN_MESSAGE)
       setSubmitting(false)
       return
     }
@@ -49,11 +64,10 @@ export default function StaffLogin() {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
-            label="Email"
-            type="email"
-            autoComplete="email"
-            error={errors.email?.message}
-            {...register('email', { required: 'Email is required' })}
+            label="Username"
+            autoComplete="username"
+            error={errors.username?.message}
+            {...register('username', { required: 'Username is required' })}
           />
           <Input
             label="Password"

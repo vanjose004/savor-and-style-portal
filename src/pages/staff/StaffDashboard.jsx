@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarDays } from 'lucide-react'
+import { CalendarDays, Wallet, ChevronRight } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import Card from '../../components/ui/Card'
@@ -58,6 +58,16 @@ export default function StaffDashboard() {
         <h1 className="font-heading text-2xl font-bold text-wine">My Events</h1>
         <p className="text-sm text-text-muted mt-1">Your upcoming assigned events.</p>
       </div>
+
+      <Link to="/staff/payroll">
+        <Card className="hover:shadow-md transition-shadow flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <Wallet className="w-5 h-5 text-wine" />
+            <p className="font-semibold text-text-dark">Payroll</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-text-muted" />
+        </Card>
+      </Link>
 
       {events.length === 0 ? (
         <EmptyState

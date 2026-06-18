@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   Menu as MenuIcon,
+  Wallet,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
   { to: '/admin/clients', label: 'Clients', icon: Users },
   { to: '/admin/staff', label: 'Staff', icon: ChefHat },
+  { to: '/admin/payroll', label: 'Payroll', icon: Wallet },
   { to: '/admin/menu', label: 'Menu', icon: UtensilsCrossed },
   { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
   { to: '/admin/settings', label: 'Settings', icon: Settings },

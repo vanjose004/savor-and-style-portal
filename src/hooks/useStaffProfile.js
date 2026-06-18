@@ -19,7 +19,7 @@ export function useStaffProfile() {
     setLoading(true)
     supabase
       .from('staff')
-      .select('name, role, phone, email')
+      .select('name, role, phone, email, username, must_change_password, rate_override')
       .eq('id', user.id)
       .single()
       .then(({ data, error }) => {

@@ -1,17 +1,33 @@
+import { useState } from 'react'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { LogOut, UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useStaffProfile } from '../../hooks/useStaffProfile'
 import { BUSINESS } from '../../lib/constants'
+import ForceChangePassword from './ForceChangePassword'
+import Spinner from '../ui/Spinner'
 
 export default function StaffLayout() {
   const { signOut } = useAuth()
-  const { profile } = useStaffProfile()
+  const { profile, loading: profileLoading } = useStaffProfile()
+  const [passwordJustChanged, setPasswordJustChanged] = useState(false)
   const navigate = useNavigate()
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/staff/login')
+  }
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-cream">
+        <Spinner className="w-8 h-8" />
+      </div>
+    )
+  }
+
+  if (profile?.must_change_password && !passwordJustChanged) {
+    return <ForceChangePassword onDone={() => setPasswordJustChanged(true)} />
   }
 
   return (

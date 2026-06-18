@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ChefHat, Plus, Pencil, Trash2, FileText } from 'lucide-react'
+import { ChefHat, Plus, Pencil, Trash2, FileText, KeyRound } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import Card from '../../components/ui/Card'
@@ -20,6 +20,9 @@ export default function StaffManagement() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [coeTarget, setCoeTarget] = useState(null)
+  const [resetTarget, setResetTarget] = useState(null)
+  const [resetting, setResetting] = useState(false)
+  const [tempPasswordResult, setTempPasswordResult] = useState(null)
 
   const load = async () => {
     setLoading(true)
@@ -60,6 +63,25 @@ export default function StaffManagement() {
     setStaff((prev) => prev.filter((s) => s.id !== deleteTarget.id))
     setDeleteTarget(null)
     showToast('Staff member removed.')
+  }
+
+  const handleResetPassword = async () => {
+    if (!resetTarget) return
+    setResetting(true)
+
+    const { data, error } = await supabase.functions.invoke('reset-staff-password', {
+      body: { staff_id: resetTarget.id },
+    })
+
+    setResetting(false)
+
+    if (error || data?.error) {
+      showToast(error?.message ?? data?.error ?? 'Failed to reset password.', 'error')
+      return
+    }
+
+    setTempPasswordResult({ name: resetTarget.name, password: data.temp_password })
+    setResetTarget(null)
   }
 
   return (
@@ -104,11 +126,12 @@ export default function StaffManagement() {
               </div>
 
               <div className="text-sm text-text-muted space-y-0.5">
+                {member.username && <p>@{member.username}</p>}
                 {member.phone && <p>{member.phone}</p>}
                 {member.email && <p>{member.email}</p>}
               </div>
 
-              <div className="flex items-center gap-2 pt-3 mt-1 border-t border-gold/10">
+              <div className="flex items-center gap-2 pt-3 mt-1 border-t border-gold/10 flex-wrap">
                 <Button variant="secondary" size="sm" className="flex-1" onClick={() => handleToggleActive(member)}>
                   {member.is_active ? 'Deactivate' : 'Activate'}
                 </Button>
@@ -119,6 +142,14 @@ export default function StaffManagement() {
                   onClick={() => setCoeTarget(member)}
                 >
                   <FileText className="w-4 h-4" /> COE
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  aria-label={`Reset password for ${member.name}`}
+                  onClick={() => setResetTarget(member)}
+                >
+                  <KeyRound className="w-4 h-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -171,6 +202,45 @@ export default function StaffManagement() {
           Are you sure you want to remove <strong>{deleteTarget?.name}</strong>? They will be removed from all
           event assignments. Their login account is not deleted automatically.
         </p>
+      </Modal>
+
+      <Modal
+        open={!!resetTarget}
+        onClose={() => setResetTarget(null)}
+        title="Reset Password"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setResetTarget(null)} disabled={resetting}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleResetPassword} disabled={resetting}>
+              {resetting ? 'Resetting…' : 'Reset Password'}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-text-dark">
+          This immediately replaces <strong>{resetTarget?.name}</strong>'s password with a new temporary one. They'll
+          be required to set their own on next login.
+        </p>
+      </Modal>
+
+      <Modal
+        open={!!tempPasswordResult}
+        onClose={() => setTempPasswordResult(null)}
+        title="Temporary Password"
+        footer={
+          <Button onClick={() => setTempPasswordResult(null)}>Done</Button>
+        }
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-text-dark">
+            Share this with <strong>{tempPasswordResult?.name}</strong> — it won't be shown again.
+          </p>
+          <p className="text-lg font-mono font-bold text-wine bg-cream rounded-lg px-4 py-3 text-center select-all">
+            {tempPasswordResult?.password}
+          </p>
+        </div>
       </Modal>
     </div>
   )

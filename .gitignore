@@ -29,3 +29,7 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Supabase CLI local cache/link state
+supabase/.temp
+supabase/.branches
