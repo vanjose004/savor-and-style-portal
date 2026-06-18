@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { ChefHat, Plus, Pencil, Trash2, FileText, KeyRound } from 'lucide-react'
+import { ChefHat, Plus, Pencil, Trash2, FileText, KeyRound, UserCheck, UserX, Clock } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
+import { cn } from '../../lib/utils'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Badge from '../../components/ui/Badge'
@@ -16,6 +17,7 @@ export default function StaffManagement() {
   const { showToast } = useToast()
   const [staff, setStaff] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('active')
   const [formTarget, setFormTarget] = useState(undefined)
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
@@ -23,6 +25,9 @@ export default function StaffManagement() {
   const [resetTarget, setResetTarget] = useState(null)
   const [resetting, setResetting] = useState(false)
   const [tempPasswordResult, setTempPasswordResult] = useState(null)
+  const [approvingId, setApprovingId] = useState(null)
+  const [rejectTarget, setRejectTarget] = useState(null)
+  const [rejecting, setRejecting] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -39,6 +44,9 @@ export default function StaffManagement() {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  const activeStaff = staff.filter((s) => !s.pending_approval)
+  const pendingStaff = staff.filter((s) => s.pending_approval)
 
   const handleToggleActive = async (member) => {
     const { error } = await supabase.from('staff').update({ is_active: !member.is_active }).eq('id', member.id)
@@ -84,6 +92,45 @@ export default function StaffManagement() {
     setResetTarget(null)
   }
 
+  const handleApprove = async (member) => {
+    setApprovingId(member.id)
+    const { error } = await supabase
+      .from('staff')
+      .update({ is_active: true, pending_approval: false })
+      .eq('id', member.id)
+    setApprovingId(null)
+
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+
+    setStaff((prev) =>
+      prev.map((s) => (s.id === member.id ? { ...s, is_active: true, pending_approval: false } : s))
+    )
+    showToast(`${member.name} approved.`)
+  }
+
+  const handleReject = async () => {
+    if (!rejectTarget) return
+    setRejecting(true)
+
+    const { data, error } = await supabase.functions.invoke('reject-staff-registration', {
+      body: { staff_id: rejectTarget.id },
+    })
+
+    setRejecting(false)
+
+    if (error || data?.error) {
+      showToast(error?.message ?? data?.error ?? 'Failed to reject registration.', 'error')
+      return
+    }
+
+    setStaff((prev) => prev.filter((s) => s.id !== rejectTarget.id))
+    setRejectTarget(null)
+    showToast('Registration rejected.')
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -96,33 +143,122 @@ export default function StaffManagement() {
         </Button>
       </div>
 
+      <div className="flex gap-2 border-b border-gold/20">
+        <button
+          onClick={() => setActiveTab('active')}
+          className={cn(
+            'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors',
+            activeTab === 'active' ? 'border-wine text-wine' : 'border-transparent text-text-muted hover:text-wine'
+          )}
+        >
+          Staff
+        </button>
+        <button
+          onClick={() => setActiveTab('pending')}
+          className={cn(
+            'px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors flex items-center gap-1.5',
+            activeTab === 'pending' ? 'border-wine text-wine' : 'border-transparent text-text-muted hover:text-wine'
+          )}
+        >
+          Pending
+          {pendingStaff.length > 0 && <Badge color="warning">{pendingStaff.length}</Badge>}
+        </button>
+      </div>
+
       {loading ? (
         <div className="flex items-center justify-center py-24">
           <Spinner className="w-8 h-8" />
         </div>
-      ) : staff.length === 0 ? (
+      ) : activeTab === 'active' ? (
+        activeStaff.length === 0 ? (
+          <EmptyState
+            icon={ChefHat}
+            title="No staff yet"
+            description="Add your team members so you can assign them to events."
+            action={
+              <Button onClick={() => setFormTarget(null)}>
+                <Plus className="w-4 h-4" /> Add Staff
+              </Button>
+            }
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {activeStaff.map((member) => (
+              <Card key={member.id} className="flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="text-base font-semibold text-text-dark truncate">{member.name}</h3>
+                    <p className="text-sm text-text-muted">{STAFF_ROLE_LABELS[member.role] ?? member.role}</p>
+                  </div>
+                  <Badge color={member.is_active ? 'success' : 'default'}>
+                    {member.is_active ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+
+                <div className="text-sm text-text-muted space-y-0.5">
+                  {member.username && <p>@{member.username}</p>}
+                  {member.phone && <p>{member.phone}</p>}
+                  {member.email && <p>{member.email}</p>}
+                </div>
+
+                <div className="flex items-center gap-2 pt-3 mt-1 border-t border-gold/10 flex-wrap">
+                  <Button variant="secondary" size="sm" className="flex-1" onClick={() => handleToggleActive(member)}>
+                    {member.is_active ? 'Deactivate' : 'Activate'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label={`Generate COE for ${member.name}`}
+                    onClick={() => setCoeTarget(member)}
+                  >
+                    <FileText className="w-4 h-4" /> COE
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    aria-label={`Reset password for ${member.name}`}
+                    onClick={() => setResetTarget(member)}
+                  >
+                    <KeyRound className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={`Edit ${member.name}`}
+                    onClick={() => setFormTarget(member)}
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-danger hover:bg-danger/10"
+                    aria-label={`Remove ${member.name}`}
+                    onClick={() => setDeleteTarget(member)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )
+      ) : pendingStaff.length === 0 ? (
         <EmptyState
-          icon={ChefHat}
-          title="No staff yet"
-          description="Add your team members so you can assign them to events."
-          action={
-            <Button onClick={() => setFormTarget(null)}>
-              <Plus className="w-4 h-4" /> Add Staff
-            </Button>
-          }
+          icon={Clock}
+          title="No pending registrations"
+          description="Staff who register themselves at /staff/register will show up here for approval."
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {staff.map((member) => (
+          {pendingStaff.map((member) => (
             <Card key={member.id} className="flex flex-col gap-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="text-base font-semibold text-text-dark truncate">{member.name}</h3>
                   <p className="text-sm text-text-muted">{STAFF_ROLE_LABELS[member.role] ?? member.role}</p>
                 </div>
-                <Badge color={member.is_active ? 'success' : 'default'}>
-                  {member.is_active ? 'Active' : 'Inactive'}
-                </Badge>
+                <Badge color="warning">Pending</Badge>
               </div>
 
               <div className="text-sm text-text-muted space-y-0.5">
@@ -131,42 +267,22 @@ export default function StaffManagement() {
                 {member.email && <p>{member.email}</p>}
               </div>
 
-              <div className="flex items-center gap-2 pt-3 mt-1 border-t border-gold/10 flex-wrap">
-                <Button variant="secondary" size="sm" className="flex-1" onClick={() => handleToggleActive(member)}>
-                  {member.is_active ? 'Deactivate' : 'Activate'}
+              <div className="flex items-center gap-2 pt-3 mt-1 border-t border-gold/10">
+                <Button
+                  size="sm"
+                  className="flex-1"
+                  disabled={approvingId === member.id}
+                  onClick={() => handleApprove(member)}
+                >
+                  <UserCheck className="w-4 h-4" /> {approvingId === member.id ? 'Approving…' : 'Approve'}
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="danger"
                   size="sm"
-                  aria-label={`Generate COE for ${member.name}`}
-                  onClick={() => setCoeTarget(member)}
+                  className="flex-1"
+                  onClick={() => setRejectTarget(member)}
                 >
-                  <FileText className="w-4 h-4" /> COE
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  aria-label={`Reset password for ${member.name}`}
-                  onClick={() => setResetTarget(member)}
-                >
-                  <KeyRound className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  aria-label={`Edit ${member.name}`}
-                  onClick={() => setFormTarget(member)}
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-danger hover:bg-danger/10"
-                  aria-label={`Remove ${member.name}`}
-                  onClick={() => setDeleteTarget(member)}
-                >
-                  <Trash2 className="w-4 h-4" />
+                  <UserX className="w-4 h-4" /> Reject
                 </Button>
               </div>
             </Card>
@@ -241,6 +357,27 @@ export default function StaffManagement() {
             {tempPasswordResult?.password}
           </p>
         </div>
+      </Modal>
+
+      <Modal
+        open={!!rejectTarget}
+        onClose={() => setRejectTarget(null)}
+        title="Reject Registration"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setRejectTarget(null)} disabled={rejecting}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleReject} disabled={rejecting}>
+              {rejecting ? 'Rejecting…' : 'Reject & Delete'}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-text-dark">
+          This permanently deletes <strong>{rejectTarget?.name}</strong>'s account. This cannot be undone — they
+          would need to register again.
+        </p>
       </Modal>
     </div>
   )

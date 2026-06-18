@@ -21,6 +21,7 @@ import AdminPayrollDetail from './pages/admin/AdminPayrollDetail'
 import Reports from './pages/admin/Reports'
 import Settings from './pages/admin/Settings'
 import StaffLogin from './pages/staff/StaffLogin'
+import StaffRegister from './pages/staff/StaffRegister'
 import StaffDashboard from './pages/staff/StaffDashboard'
 import StaffEventDetail from './pages/staff/StaffEventDetail'
 import Payroll from './pages/staff/Payroll'
@@ -57,6 +58,7 @@ function App() {
             </Route>
 
             <Route path="/staff/login" element={<StaffLogin />} />
+            <Route path="/staff/register" element={<StaffRegister />} />
 
             <Route element={<RequireStaff />}>
               <Route element={<StaffLayout />}>

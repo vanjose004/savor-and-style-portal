@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { supabase, createStaffSignupClient } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
+import { suggestUsername } from '../../../utils/username'
 import Modal from '../../ui/Modal'
 import Button from '../../ui/Button'
 import Input from '../../ui/Input'
@@ -9,14 +10,6 @@ import Select from '../../ui/Select'
 import { STAFF_ROLES, STAFF_ROLE_LABELS } from '../../../lib/constants'
 
 const ROLE_OPTIONS = STAFF_ROLES.map((value) => ({ value, label: STAFF_ROLE_LABELS[value] }))
-
-/** Suggests a "firstname.lastname" username from a display name, e.g. "Juan Dela Cruz" -> "juan.cruz". */
-function suggestUsername(name) {
-  const parts = name.trim().toLowerCase().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return ''
-  if (parts.length === 1) return parts[0]
-  return `${parts[0]}.${parts[parts.length - 1]}`
-}
 
 export default function StaffFormModal({ open, onClose, staff, onSaved }) {
   const { showToast } = useToast()

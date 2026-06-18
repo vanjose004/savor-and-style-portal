@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { Navigate, useNavigate, Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { UtensilsCrossed } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
@@ -83,6 +83,13 @@ export default function StaffLogin() {
             {submitting ? 'Signing in…' : 'Sign In'}
           </Button>
         </form>
+
+        <p className="text-sm text-text-muted text-center mt-4">
+          New here?{' '}
+          <Link to="/staff/register" className="text-wine hover:underline">
+            Register
+          </Link>
+        </p>
       </Card>
     </div>
   )
