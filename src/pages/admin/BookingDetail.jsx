@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Pencil } from 'lucide-react'
+import { useParams, useNavigate, Link } from 'react-router-dom'
+import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import Card from '../../components/ui/Card'
@@ -8,6 +8,7 @@ import Button from '../../components/ui/Button'
 import Spinner from '../../components/ui/Spinner'
 import StatusBadge from '../../components/ui/StatusBadge'
 import Field from '../../components/ui/Field'
+import Modal from '../../components/ui/Modal'
 import { formatDate, formatTime } from '../../lib/utils'
 import { LECHON_NOTE, KIDS_EVENT_TYPES } from '../../lib/constants'
 import MenuSection from '../../components/admin/booking-detail/MenuSection'
@@ -23,9 +24,12 @@ import ClientPortalCard from '../../components/admin/booking-detail/ClientPortal
 
 export default function BookingDetail() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const { showToast } = useToast()
   const [booking, setBooking] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const loadBooking = useCallback(async () => {
     const { data, error } = await supabase.from('bookings').select('*, clients(*)').eq('id', id).single()
@@ -59,6 +63,20 @@ export default function BookingDetail() {
     return <p className="text-sm text-text-muted">Booking not found.</p>
   }
 
+  const handleDelete = async () => {
+    setDeleting(true)
+    const { error } = await supabase.from('bookings').delete().eq('id', booking.id)
+    setDeleting(false)
+
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+
+    showToast('Booking deleted.')
+    navigate('/admin/bookings')
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -76,10 +94,16 @@ export default function BookingDetail() {
             {booking.event_time ? ` · ${formatTime(booking.event_time)}` : ''}
           </p>
         </div>
-        <Button as={Link} to={`/admin/bookings/${booking.id}/edit`} variant="secondary">
-          <Pencil className="w-4 h-4" />
-          Edit Booking
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button as={Link} to={`/admin/bookings/${booking.id}/edit`} variant="secondary">
+            <Pencil className="w-4 h-4" />
+            Edit Booking
+          </Button>
+          <Button variant="ghost" className="text-danger hover:bg-danger/10" onClick={() => setDeleteOpen(true)}>
+            <Trash2 className="w-4 h-4" />
+            Delete Booking
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -176,6 +200,29 @@ export default function BookingDetail() {
           <InternalNotesCard booking={booking} onChange={loadBooking} />
         </div>
       </div>
+
+      <Modal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title="Delete Booking"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete} disabled={deleting}>
+              {deleting ? 'Deleting…' : 'Delete'}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-text-dark">
+          Are you sure you want to delete booking <strong>{booking.booking_code}</strong> for{' '}
+          <strong>{booking.clients?.name}</strong>? This will permanently remove the booking and all
+          associated payments, menu items, staff assignments, checklists, and updates. This action
+          cannot be undone.
+        </p>
+      </Modal>
     </div>
   )
 }

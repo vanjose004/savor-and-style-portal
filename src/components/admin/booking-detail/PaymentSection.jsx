@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Banknote, FileDown, Receipt } from 'lucide-react'
+import { Banknote, FileDown, Receipt, Trash2 } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
 import Card from '../../ui/Card'
@@ -83,6 +83,8 @@ export default function PaymentSection({ booking, onChange }) {
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
   const [generatingId, setGeneratingId] = useState(null)
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   const loadPayments = async () => {
     setLoading(true)
@@ -143,6 +145,23 @@ export default function PaymentSection({ booking, onChange }) {
     setGeneratingId(null)
   }
 
+  const handleDeletePayment = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    const { error } = await supabase.from('payments').delete().eq('id', deleteTarget.id)
+    setDeleting(false)
+
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+
+    showToast('Payment removed.')
+    setDeleteTarget(null)
+    await loadPayments()
+    onChange()
+  }
+
   const { paid, remaining } = getPaymentProgress(booking.total_amount, booking.balance)
 
   return (
@@ -194,16 +213,26 @@ export default function PaymentSection({ booking, onChange }) {
                     {formatDateTime(payment.paid_at)}
                   </p>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleGenerateAR(payment)}
-                  disabled={generatingId === payment.id}
-                  className="shrink-0"
-                >
-                  <FileDown className="w-4 h-4" />
-                  {payment.ar_generated ? 'Re-print AR' : 'Generate AR'}
-                </Button>
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleGenerateAR(payment)}
+                    disabled={generatingId === payment.id}
+                  >
+                    <FileDown className="w-4 h-4" />
+                    {payment.ar_generated ? 'Re-print AR' : 'Generate AR'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-danger hover:bg-danger/10"
+                    aria-label="Remove payment"
+                    onClick={() => setDeleteTarget(payment)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
@@ -211,6 +240,28 @@ export default function PaymentSection({ booking, onChange }) {
       </div>
 
       <RecordPaymentModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} saving={saving} />
+
+      <Modal
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Remove Payment"
+        footer={
+          <>
+            <Button variant="secondary" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDeletePayment} disabled={deleting}>
+              {deleting ? 'Removing…' : 'Remove'}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-text-dark">
+          Remove this payment of <strong>{formatCurrency(deleteTarget?.amount)}</strong> recorded on{' '}
+          <strong>{formatDateTime(deleteTarget?.paid_at)}</strong>? The booking balance will be
+          recalculated. This action cannot be undone.
+        </p>
+      </Modal>
     </Card>
   )
 }
