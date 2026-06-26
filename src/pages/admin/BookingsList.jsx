@@ -29,10 +29,25 @@ function getCountdown(eventDate) {
   return { label: 'UPCOMING', color: 'yellow' }
 }
 
+// Events stay in "Upcoming" until more than 2 days past their event date, so
+// admins still have time to settle payments and wrap up before a booking
+// disappears into "Past Events".
+function getPastCutoff() {
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - 2)
+  return cutoffDate.toISOString().slice(0, 10)
+}
+
+const TABS = [
+  { value: 'upcoming', label: 'Upcoming' },
+  { value: 'past', label: 'Past Events' },
+]
+
 export default function BookingsList() {
   const { showToast } = useToast()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState('upcoming')
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({ status: '', eventType: '', dateFrom: '', dateTo: '', search: '' })
   const [deleteTarget, setDeleteTarget] = useState(null)
@@ -56,7 +71,11 @@ export default function BookingsList() {
         .select(
           'id, booking_code, event_type, event_date, event_time, venue, pax, status, total_amount, balance, clients!inner(name)'
         )
-        .order('event_date', { ascending: true })
+        .order('event_date', { ascending: tab !== 'past' })
+
+      const cutoff = getPastCutoff()
+      if (tab === 'upcoming') query = query.gte('event_date', cutoff)
+      if (tab === 'past') query = query.lt('event_date', cutoff)
 
       if (filters.status) query = query.eq('status', filters.status)
       if (filters.eventType) query = query.eq('event_type', filters.eventType)
@@ -81,7 +100,7 @@ export default function BookingsList() {
     return () => {
       cancelled = true
     }
-  }, [filters, showToast])
+  }, [filters, tab, showToast])
 
   const handleClearFilters = () => {
     setSearchInput('')
@@ -119,6 +138,20 @@ export default function BookingsList() {
           <Plus className="w-4 h-4" />
           New Booking
         </Button>
+      </div>
+
+      <div className="flex gap-2">
+        {TABS.map((t) => (
+          <Button
+            key={t.value}
+            type="button"
+            variant={tab === t.value ? 'primary' : 'secondary'}
+            size="sm"
+            onClick={() => setTab(t.value)}
+          >
+            {t.label}
+          </Button>
+        ))}
       </div>
 
       <Card>
