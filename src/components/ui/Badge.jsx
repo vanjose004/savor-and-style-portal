@@ -7,6 +7,9 @@ const COLORS = {
   warning: 'bg-warning/10 text-warning',
   danger: 'bg-danger/10 text-danger',
   gold: 'bg-gold/15 text-gold',
+  blue: 'bg-blue-500/10 text-blue-700',
+  orange: 'bg-orange-500/10 text-orange-700',
+  yellow: 'bg-yellow-400/15 text-yellow-700',
 }
 
 export default function Badge({ color = 'default', className, children }) {

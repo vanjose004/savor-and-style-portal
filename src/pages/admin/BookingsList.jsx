@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Plus, Pencil, Trash2, CalendarDays } from 'lucide-react'
+import { Plus, Pencil, Trash2, CalendarDays, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import Card from '../../components/ui/Card'
@@ -12,7 +12,7 @@ import Badge from '../../components/ui/Badge'
 import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { BOOKING_STATUSES, EVENT_TYPES } from '../../lib/constants'
-import { formatCurrency, getDaysUntil, getPaymentProgress } from '../../lib/utils'
+import { formatCurrency, formatShortDate, getDaysUntil, getPaymentProgress } from '../../lib/utils'
 
 const STATUS_OPTIONS = BOOKING_STATUSES.map((s) => ({
   value: s,
@@ -23,9 +23,10 @@ function getCountdown(eventDate) {
   const days = getDaysUntil(eventDate)
   if (days === null) return { label: '—', color: 'default' }
 
-  const label = days < 0 ? 'OVERDUE' : days === 0 ? 'TODAY' : days === 1 ? 'TOMORROW' : `${days} days away`
-  const color = days <= 3 ? 'danger' : days <= 7 ? 'warning' : 'success'
-  return { label, color }
+  if (days < 0) return { label: 'EVENT DONE', color: 'blue' }
+  if (days === 0) return { label: 'TODAY', color: 'danger' }
+  if (days === 1) return { label: 'TOMORROW', color: 'orange' }
+  return { label: 'UPCOMING', color: 'yellow' }
 }
 
 export default function BookingsList() {
@@ -53,7 +54,7 @@ export default function BookingsList() {
       let query = supabase
         .from('bookings')
         .select(
-          'id, booking_code, event_type, event_date, event_time, pax, status, total_amount, balance, clients!inner(name)'
+          'id, booking_code, event_type, event_date, event_time, venue, pax, status, total_amount, balance, clients!inner(name)'
         )
         .order('event_date', { ascending: true })
 
@@ -194,8 +195,8 @@ export default function BookingsList() {
 
             return (
               <div key={booking.id} className="flex items-center gap-3 px-4 py-3 hover:bg-cream/50 transition-colors">
-                <Badge color={countdown.color} className="shrink-0 w-24 justify-center">
-                  {countdown.label}
+                <Badge color={countdown.color} className="shrink-0">
+                  {formatShortDate(booking.event_date)} • {countdown.label}
                 </Badge>
 
                 <div className="min-w-0 flex-1">
@@ -203,6 +204,12 @@ export default function BookingsList() {
                     {booking.clients?.name ?? 'Unknown client'}
                   </p>
                   <p className="text-xs text-text-muted truncate">{booking.event_type}</p>
+                  {booking.venue && (
+                    <p className="text-xs text-text-muted truncate flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3 h-3 shrink-0" />
+                      {booking.venue}
+                    </p>
+                  )}
                 </div>
 
                 <div className="hidden sm:block w-16 text-right text-sm text-text-dark shrink-0">

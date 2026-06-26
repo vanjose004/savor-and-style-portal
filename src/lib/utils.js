@@ -49,6 +49,13 @@ export function formatDateTime(timestamp) {
   })
 }
 
+/** Format an ISO date string (YYYY-MM-DD) as e.g. "Jun 28" (no year) */
+export function formatShortDate(dateString) {
+  if (!dateString) return ''
+  const date = new Date(`${dateString}T00:00:00`)
+  return date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+}
+
 /** Number of calendar days between today and an ISO date string (negative if in the past). */
 export function getDaysUntil(dateString) {
   if (!dateString) return null
