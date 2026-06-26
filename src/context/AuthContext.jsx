@@ -51,12 +51,18 @@ export function AuthProvider({ children }) {
 
   const signOut = () => supabase.auth.signOut()
 
+  // Chef accounts are created manually in the Supabase dashboard with
+  // user_metadata.role = 'chef' — no chefs table, so this reads straight
+  // off the session instead of an async lookup.
+  const isChef = session?.user?.user_metadata?.role === 'chef'
+
   const value = {
     session,
     user: session?.user ?? null,
     loading: loading || roleLoading,
     isAdmin,
     isStaff,
+    isChef,
     signIn,
     signOut,
   }

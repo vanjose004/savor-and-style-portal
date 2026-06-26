@@ -5,6 +5,8 @@ import RequireAdmin from './components/admin/RequireAdmin'
 import AdminLayout from './components/admin/AdminLayout'
 import RequireStaff from './components/staff/RequireStaff'
 import StaffLayout from './components/staff/StaffLayout'
+import RequireChef from './components/chef/RequireChef'
+import ChefLayout from './components/chef/ChefLayout'
 import Home from './pages/Home'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -28,6 +30,10 @@ import StaffEventDetail from './pages/staff/StaffEventDetail'
 import Payroll from './pages/staff/Payroll'
 import PayrollSubmit from './pages/staff/PayrollSubmit'
 import PayrollReport from './pages/staff/PayrollReport'
+import ChefLogin from './pages/chef/ChefLogin'
+import ChefDashboard from './pages/chef/ChefDashboard'
+import ChefEventDetail from './pages/chef/ChefEventDetail'
+import KitchenOrderSheet from './pages/chef/KitchenOrderSheet'
 import ClientPortal from './pages/ClientPortal'
 
 function App() {
@@ -69,6 +75,17 @@ function App() {
                 <Route path="/staff/payroll" element={<Payroll />} />
                 <Route path="/staff/payroll/submit/:eventId" element={<PayrollSubmit />} />
                 <Route path="/staff/payroll/report/:reportId" element={<PayrollReport />} />
+              </Route>
+            </Route>
+
+            <Route path="/chef" element={<Navigate to="/chef/login" replace />} />
+            <Route path="/chef/login" element={<ChefLogin />} />
+
+            <Route element={<RequireChef />}>
+              <Route path="/chef/print/:id" element={<KitchenOrderSheet />} />
+              <Route element={<ChefLayout />}>
+                <Route path="/chef/dashboard" element={<ChefDashboard />} />
+                <Route path="/chef/event/:id" element={<ChefEventDetail />} />
               </Route>
             </Route>
 
