@@ -49,6 +49,15 @@ export function formatDateTime(timestamp) {
   })
 }
 
+/** Number of calendar days between today and an ISO date string (negative if in the past). */
+export function getDaysUntil(dateString) {
+  if (!dateString) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const target = new Date(`${dateString}T00:00:00`)
+  return Math.round((target - today) / 86400000)
+}
+
 /** Compute paid amount and progress percentage from a booking total and balance. */
 export function getPaymentProgress(totalAmount, balance) {
   const total = Number(totalAmount) || 0

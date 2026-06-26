@@ -8,17 +8,25 @@ import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
 import Select from '../../components/ui/Select'
 import Modal from '../../components/ui/Modal'
-import StatusBadge from '../../components/ui/StatusBadge'
-import PaymentProgressBar from '../../components/ui/PaymentProgressBar'
+import Badge from '../../components/ui/Badge'
 import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { BOOKING_STATUSES, EVENT_TYPES } from '../../lib/constants'
-import { formatDate, formatTime } from '../../lib/utils'
+import { formatCurrency, getDaysUntil, getPaymentProgress } from '../../lib/utils'
 
 const STATUS_OPTIONS = BOOKING_STATUSES.map((s) => ({
   value: s,
   label: s.charAt(0).toUpperCase() + s.slice(1),
 }))
+
+function getCountdown(eventDate) {
+  const days = getDaysUntil(eventDate)
+  if (days === null) return { label: '—', color: 'default' }
+
+  const label = days < 0 ? 'OVERDUE' : days === 0 ? 'TODAY' : days === 1 ? 'TOMORROW' : `${days} days away`
+  const color = days <= 3 ? 'danger' : days <= 7 ? 'warning' : 'success'
+  return { label, color }
+}
 
 export default function BookingsList() {
   const { showToast } = useToast()
@@ -47,7 +55,7 @@ export default function BookingsList() {
         .select(
           'id, booking_code, event_type, event_date, event_time, pax, status, total_amount, balance, clients!inner(name)'
         )
-        .order('event_date', { ascending: false })
+        .order('event_date', { ascending: true })
 
       if (filters.status) query = query.eq('status', filters.status)
       if (filters.eventType) query = query.eq('event_type', filters.eventType)
@@ -179,53 +187,64 @@ export default function BookingsList() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {bookings.map((booking) => (
-            <Card key={booking.id} className="flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-xs text-text-muted">{booking.booking_code}</p>
-                  <h3 className="text-base font-semibold text-text-dark truncate">
+        <div className="bg-warm-white rounded-xl border border-gold/20 shadow-sm divide-y divide-gold/10">
+          {bookings.map((booking) => {
+            const countdown = getCountdown(booking.event_date)
+            const { paid, remaining } = getPaymentProgress(booking.total_amount, booking.balance)
+
+            return (
+              <div key={booking.id} className="flex items-center gap-3 px-4 py-3 hover:bg-cream/50 transition-colors">
+                <Badge color={countdown.color} className="shrink-0 w-24 justify-center">
+                  {countdown.label}
+                </Badge>
+
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-text-dark truncate">
                     {booking.clients?.name ?? 'Unknown client'}
-                  </h3>
-                  <p className="text-sm text-text-muted">{booking.event_type}</p>
+                  </p>
+                  <p className="text-xs text-text-muted truncate">{booking.event_type}</p>
                 </div>
-                <StatusBadge status={booking.status} />
-              </div>
 
-              <div className="text-sm text-text-muted">
-                {formatDate(booking.event_date)}
-                {booking.event_time ? ` · ${formatTime(booking.event_time)}` : ''}
-                {booking.pax ? ` · ${booking.pax} pax` : ''}
-              </div>
+                <div className="hidden sm:block w-16 text-right text-sm text-text-dark shrink-0">
+                  {booking.pax ?? '—'} pax
+                </div>
 
-              <PaymentProgressBar totalAmount={booking.total_amount} balance={booking.balance} />
+                <div className="hidden md:block w-28 text-right shrink-0">
+                  <p className="text-xs text-text-muted">Paid</p>
+                  <p className="text-sm font-medium text-success">{formatCurrency(paid)}</p>
+                </div>
 
-              <div className="flex items-center gap-2 pt-3 mt-1 border-t border-gold/10">
-                <Button as={Link} to={`/admin/bookings/${booking.id}`} variant="secondary" size="sm" className="flex-1">
-                  View Details
-                </Button>
-                <Button
-                  as={Link}
-                  to={`/admin/bookings/${booking.id}/edit`}
-                  variant="ghost"
-                  size="sm"
-                  aria-label="Edit booking"
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-danger hover:bg-danger/10"
-                  aria-label="Delete booking"
-                  onClick={() => setDeleteTarget(booking)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="hidden md:block w-28 text-right shrink-0">
+                  <p className="text-xs text-text-muted">Balance</p>
+                  <p className="text-sm font-medium text-danger">{formatCurrency(remaining)}</p>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  <Button as={Link} to={`/admin/bookings/${booking.id}`} variant="secondary" size="sm">
+                    View
+                  </Button>
+                  <Button
+                    as={Link}
+                    to={`/admin/bookings/${booking.id}/edit`}
+                    variant="ghost"
+                    size="sm"
+                    aria-label="Edit booking"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-danger hover:bg-danger/10"
+                    aria-label="Delete booking"
+                    onClick={() => setDeleteTarget(booking)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-            </Card>
-          ))}
+            )
+          })}
         </div>
       )}
 
