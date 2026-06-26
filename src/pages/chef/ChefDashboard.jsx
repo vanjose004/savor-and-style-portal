@@ -51,11 +51,16 @@ export default function ChefDashboard() {
   }, [showToast])
 
   const visibleBookings = useMemo(() => {
-    const today = new Date().toISOString().slice(0, 10)
+    // Events stay in "Upcoming" until more than 2 days past their event date,
+    // so admins still have time to settle payments and wrap up before a
+    // booking disappears into "Past".
+    const cutoffDate = new Date()
+    cutoffDate.setDate(cutoffDate.getDate() - 2)
+    const cutoff = cutoffDate.toISOString().slice(0, 10)
 
     let filtered = bookings
-    if (filter === 'upcoming') filtered = bookings.filter((b) => b.event_date >= today)
-    if (filter === 'past') filtered = bookings.filter((b) => b.event_date < today).reverse()
+    if (filter === 'upcoming') filtered = bookings.filter((b) => b.event_date >= cutoff)
+    if (filter === 'past') filtered = bookings.filter((b) => b.event_date < cutoff).reverse()
 
     const term = search.trim().toLowerCase()
     if (!term) return filtered
