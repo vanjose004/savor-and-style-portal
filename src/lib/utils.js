@@ -1,3 +1,5 @@
+import { startOfMonth, endOfMonth, format, subMonths } from 'date-fns'
+
 /** Merge class names, skipping falsy values. */
 export function cn(...classes) {
   return classes.filter(Boolean).join(' ')
@@ -72,4 +74,31 @@ export function getPaymentProgress(totalAmount, balance) {
   const paid = Math.max(total - remaining, 0)
   const percent = total > 0 ? Math.min(Math.round((paid / total) * 100), 100) : 0
   return { paid, remaining, percent }
+}
+
+/** Returns the YYYY-MM-DD bounds (inclusive) of the month containing `date`. */
+export function getMonthBounds(date = new Date()) {
+  return {
+    start: format(startOfMonth(date), 'yyyy-MM-dd'),
+    end: format(endOfMonth(date), 'yyyy-MM-dd'),
+  }
+}
+
+/** Returns the last `count` months (oldest first), each with date bounds and a short label. */
+export function getLastMonths(count, from = new Date()) {
+  return Array.from({ length: count }, (_, i) => {
+    const date = subMonths(from, count - 1 - i)
+    return {
+      ...getMonthBounds(date),
+      label: format(date, 'MMM yyyy'),
+      key: format(date, 'yyyy-MM'),
+    }
+  })
+}
+
+/** Compute the paid percentage (0-100) for a payable given its total and amount paid. */
+export function getPayableProgress(totalAmount, amountPaid) {
+  const total = Number(totalAmount) || 0
+  const paid = Number(amountPaid) || 0
+  return total > 0 ? Math.min(Math.round((paid / total) * 100), 100) : 0
 }

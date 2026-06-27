@@ -185,3 +185,87 @@ export const CHECKLIST_CATEGORY_LABELS = {
   service: 'Service',
   cleanup: 'Cleanup',
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// Accounting — income (transactions), expenses, payables/utang
+// ─────────────────────────────────────────────────────────────────────────
+
+export const MONTH_OPTIONS = [
+  { value: 0, label: 'January' },
+  { value: 1, label: 'February' },
+  { value: 2, label: 'March' },
+  { value: 3, label: 'April' },
+  { value: 4, label: 'May' },
+  { value: 5, label: 'June' },
+  { value: 6, label: 'July' },
+  { value: 7, label: 'August' },
+  { value: 8, label: 'September' },
+  { value: 9, label: 'October' },
+  { value: 10, label: 'November' },
+  { value: 11, label: 'December' },
+]
+
+export const INCOME_CATEGORIES = ['reservation_fee', 'downpayment', 'balance', 'other_income']
+
+export const INCOME_CATEGORY_LABELS = {
+  reservation_fee: 'Reservation Fee',
+  downpayment: 'Downpayment',
+  balance: 'Balance Payment',
+  other_income: 'Other Income',
+}
+
+// Payment methods accepted for income — distinct from the booking-flow
+// PAYMENT_METHODS above (different, overlapping-but-not-identical lists).
+export const INCOME_PAYMENT_METHODS = ['GCash', 'Cash', 'Bank Transfer', 'Credit Card', 'Maya', 'Check']
+
+export const INCOME_PAYMENT_METHOD_OPTIONS = INCOME_PAYMENT_METHODS.map((method) => ({
+  value: method,
+  label: method === 'Credit Card' ? 'Credit Card (+5% fee)' : method,
+}))
+
+export const EXPENSE_CATEGORIES = [
+  'ingredients',
+  'staff_labor',
+  'transportation',
+  'bills_utilities',
+  'equipment',
+  'utang_payment',
+  'marketing_ads',
+  'owner_salary',
+  'chef_salary',
+  'event_supplies',
+  'others',
+]
+
+export const EXPENSE_CATEGORY_LABELS = {
+  ingredients: 'Ingredients / Raw Materials',
+  staff_labor: 'Staff / Labor',
+  transportation: 'Transportation / Fuel',
+  bills_utilities: 'Bills / Utilities',
+  equipment: 'Equipment',
+  utang_payment: 'Utang Payment',
+  marketing_ads: 'Marketing / Ads',
+  owner_salary: "Owner's Salary / Draw",
+  chef_salary: 'Chef / Partner Salary',
+  event_supplies: 'Event Supplies / Decorations',
+  others: 'Others',
+}
+
+// Categories that show the "Period" field and the personal/business reminder
+export const SALARY_CATEGORIES = ['owner_salary', 'chef_salary']
+
+export const EXPENSE_PAYMENT_METHODS = ['Cash', 'GCash', 'Bank Transfer', 'Credit Card']
+
+export const PAYABLE_STATUSES = ['unpaid', 'partial', 'paid']
+
+export const PAYABLE_STATUS_LABELS = {
+  unpaid: 'Unpaid',
+  partial: 'Partial',
+  paid: 'Paid',
+}
+
+export const PAYABLE_STATUS_COLORS = {
+  unpaid: 'danger',
+  partial: 'warning',
+  paid: 'success',
+}

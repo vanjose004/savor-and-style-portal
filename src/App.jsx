@@ -23,6 +23,16 @@ import AdminPayroll from './pages/admin/AdminPayroll'
 import AdminPayrollDetail from './pages/admin/AdminPayrollDetail'
 import Reports from './pages/admin/Reports'
 import Settings from './pages/admin/Settings'
+import AccountingLayout from './components/admin/accounting/AccountingLayout'
+import AccountingDashboard from './pages/admin/accounting/AccountingDashboard'
+import AccountingIncome from './pages/admin/accounting/Income'
+import AccountingIncomeNew from './pages/admin/accounting/IncomeNew'
+import AccountingExpenses from './pages/admin/accounting/Expenses'
+import AccountingExpenseNew from './pages/admin/accounting/ExpenseNew'
+import AccountingPayables from './pages/admin/accounting/Payables'
+import AccountingPayableNew from './pages/admin/accounting/PayableNew'
+import AccountingPayableDetail from './pages/admin/accounting/PayableDetail'
+import AccountingReports from './pages/admin/accounting/Reports'
 import StaffLogin from './pages/staff/StaffLogin'
 import StaffRegister from './pages/staff/StaffRegister'
 import StaffDashboard from './pages/staff/StaffDashboard'
@@ -62,6 +72,17 @@ function App() {
                 <Route path="/admin/payroll/:reportId" element={<AdminPayrollDetail />} />
                 <Route path="/admin/reports" element={<Reports />} />
                 <Route path="/admin/settings" element={<Settings />} />
+                <Route path="/admin/accounting" element={<AccountingLayout />}>
+                  <Route index element={<AccountingDashboard />} />
+                  <Route path="income" element={<AccountingIncome />} />
+                  <Route path="income/new" element={<AccountingIncomeNew />} />
+                  <Route path="expenses" element={<AccountingExpenses />} />
+                  <Route path="expenses/new" element={<AccountingExpenseNew />} />
+                  <Route path="payables" element={<AccountingPayables />} />
+                  <Route path="payables/new" element={<AccountingPayableNew />} />
+                  <Route path="payables/:id" element={<AccountingPayableDetail />} />
+                  <Route path="reports" element={<AccountingReports />} />
+                </Route>
               </Route>
             </Route>
 

@@ -4,6 +4,7 @@ const VARIANTS = {
   primary: 'bg-wine text-warm-white hover:bg-wine-dark',
   secondary: 'bg-warm-white text-wine border border-gold/40 hover:bg-cream',
   outline: 'border border-wine text-wine bg-transparent hover:bg-wine hover:text-warm-white',
+  success: 'bg-success text-warm-white hover:bg-success/90',
   danger: 'bg-danger text-warm-white hover:bg-danger/90',
   ghost: 'text-wine hover:bg-cream',
 }

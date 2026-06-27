@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu as MenuIcon,
   Wallet,
+  PiggyBank,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { to: '/admin/staff', label: 'Staff', icon: ChefHat },
   { to: '/admin/payroll', label: 'Payroll', icon: Wallet },
   { to: '/admin/menu', label: 'Menu', icon: UtensilsCrossed },
+  { to: '/admin/accounting', label: 'Accounting', icon: PiggyBank },
   { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]
