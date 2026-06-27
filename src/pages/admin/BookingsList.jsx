@@ -41,6 +41,7 @@ function getPastCutoff() {
 const TABS = [
   { value: 'upcoming', label: 'Upcoming' },
   { value: 'past', label: 'Past Events' },
+  { value: 'all', label: 'All Events' },
 ]
 
 export default function BookingsList() {
