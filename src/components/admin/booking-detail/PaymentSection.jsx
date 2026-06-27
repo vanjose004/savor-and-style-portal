@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Banknote, FileDown, Receipt, Trash2 } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
+import { useFormDraft } from '../../../hooks/useFormDraft'
 import Card from '../../ui/Card'
 import Button from '../../ui/Button'
 import Input from '../../ui/Input'
@@ -26,17 +27,28 @@ const EMPTY_PAYMENT_FORM = {
   notes: '',
 }
 
-function RecordPaymentModal({ open, onClose, onSave, saving }) {
+function RecordPaymentModal({ open, onClose, onSave, saving, bookingId }) {
+  const form = useForm({ defaultValues: EMPTY_PAYMENT_FORM })
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({ defaultValues: EMPTY_PAYMENT_FORM })
+  } = form
+
+  const { restoreDraft, clearDraft } = useFormDraft(form, `draft:payment-${bookingId}`)
 
   useEffect(() => {
-    if (open) reset(EMPTY_PAYMENT_FORM)
+    if (!open) return
+    reset(EMPTY_PAYMENT_FORM)
+    restoreDraft()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, reset])
+
+  const handleFormSubmit = handleSubmit(async (values) => {
+    const result = await onSave(values)
+    if (result !== false) clearDraft()
+  })
 
   return (
     <Modal
@@ -48,13 +60,13 @@ function RecordPaymentModal({ open, onClose, onSave, saving }) {
           <Button variant="secondary" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSave)} disabled={saving}>
+          <Button onClick={handleFormSubmit} disabled={saving}>
             {saving ? 'Saving…' : 'Record Payment'}
           </Button>
         </>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit(onSave)}>
+      <form className="space-y-4" onSubmit={handleFormSubmit}>
         <Input
           label="Amount (₱)"
           type="number"
@@ -123,7 +135,7 @@ export default function PaymentSection({ booking, onChange }) {
 
     if (error) {
       showToast(error.message, 'error')
-      return
+      return false
     }
 
     showToast('Payment recorded.')
@@ -239,7 +251,13 @@ export default function PaymentSection({ booking, onChange }) {
         )}
       </div>
 
-      <RecordPaymentModal open={modalOpen} onClose={() => setModalOpen(false)} onSave={handleSave} saving={saving} />
+      <RecordPaymentModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSave={handleSave}
+        saving={saving}
+        bookingId={booking.id}
+      />
 
       <Modal
         open={!!deleteTarget}

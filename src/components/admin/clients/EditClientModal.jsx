@@ -2,18 +2,24 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
+import { useFormDraft } from '../../../hooks/useFormDraft'
 import Modal from '../../ui/Modal'
 import Button from '../../ui/Button'
 import Input from '../../ui/Input'
 
 export default function EditClientModal({ open, onClose, client, onSaved }) {
   const { showToast } = useToast()
+  const form = useForm({ defaultValues: { name: '', phone: '', email: '', address: '' } })
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm({ defaultValues: { name: '', phone: '', email: '', address: '' } })
+  } = form
+
+  const { restoreDraft, clearDraft } = useFormDraft(form, `draft:client-edit-${client?.id ?? 'none'}`, {
+    enabled: Boolean(client),
+  })
 
   useEffect(() => {
     if (!open || !client) return
@@ -23,6 +29,8 @@ export default function EditClientModal({ open, onClose, client, onSaved }) {
       email: client.email ?? '',
       address: client.address ?? '',
     })
+    restoreDraft()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, client, reset])
 
   const onSubmit = async (values) => {
@@ -41,6 +49,7 @@ export default function EditClientModal({ open, onClose, client, onSaved }) {
       return
     }
 
+    clearDraft()
     showToast('Client updated.')
     onClose()
     onSaved()

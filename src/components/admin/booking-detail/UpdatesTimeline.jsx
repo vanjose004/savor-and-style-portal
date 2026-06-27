@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { ClipboardList, Send } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
+import { useFormDraft } from '../../../hooks/useFormDraft'
 import Card from '../../ui/Card'
 import Button from '../../ui/Button'
 import Badge from '../../ui/Badge'
@@ -22,12 +23,20 @@ export default function UpdatesTimeline({ bookingId }) {
   const [updates, setUpdates] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const form = useForm({ defaultValues: EMPTY_FORM })
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({ defaultValues: EMPTY_FORM })
+  } = form
+
+  const { restoreDraft, clearDraft } = useFormDraft(form, `draft:booking-update-${bookingId}`)
+
+  useEffect(() => {
+    restoreDraft()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const loadUpdates = async () => {
     setLoading(true)
@@ -66,6 +75,7 @@ export default function UpdatesTimeline({ bookingId }) {
       return
     }
 
+    clearDraft()
     showToast('Update posted.')
     reset({ ...EMPTY_FORM, update_type: values.update_type })
     loadUpdates()

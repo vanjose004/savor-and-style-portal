@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
+import { useFormDraft } from '../../hooks/useFormDraft'
 import Card from '../../components/ui/Card'
 import Button from '../../components/ui/Button'
 import Input from '../../components/ui/Input'
@@ -15,17 +16,30 @@ import { cn } from '../../lib/utils'
 import { MENU_CATEGORIES } from '../../lib/constants'
 
 function DishFormModal({ open, onClose, onSave, saving, item, defaultCategory }) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
+  const form = useForm({
     defaultValues: {
       dish_name: item?.dish_name ?? '',
       category: item?.category ?? defaultCategory ?? MENU_CATEGORIES[0],
       is_available: item?.is_available ?? true,
       notes: item?.notes ?? '',
     },
+  })
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = form
+
+  const { restoreDraft, clearDraft } = useFormDraft(form, item ? `draft:dish-edit-${item.id}` : 'draft:dish-add')
+
+  useEffect(() => {
+    restoreDraft()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleFormSubmit = handleSubmit(async (values) => {
+    const result = await onSave(values)
+    if (result !== false) clearDraft()
   })
 
   return (
@@ -38,13 +52,13 @@ function DishFormModal({ open, onClose, onSave, saving, item, defaultCategory })
           <Button variant="secondary" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit(onSave)} disabled={saving}>
+          <Button onClick={handleFormSubmit} disabled={saving}>
             {saving ? 'Saving…' : 'Save'}
           </Button>
         </>
       }
     >
-      <form className="space-y-4" onSubmit={handleSubmit(onSave)}>
+      <form className="space-y-4" onSubmit={handleFormSubmit}>
         <Input
           label="Dish Name"
           error={errors.dish_name?.message}
@@ -124,7 +138,7 @@ export default function MenuManager() {
 
     if (error) {
       showToast(error.message, 'error')
-      return
+      return false
     }
 
     showToast(editingItem ? 'Dish updated.' : 'Dish added.')

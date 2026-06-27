@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Plus } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
+import { useFormDraft } from '../../../hooks/useFormDraft'
 import { insertBahayTeamExpense } from '../../../utils/payrollAccounting'
 import { BAHAY_TEAM_RATES, BAHAY_WORKER_TYPE_LABELS } from '../../../config/payrollRates'
 import Card from '../../ui/Card'
@@ -22,15 +23,18 @@ export default function BahayTeamLog() {
   const [loading, setLoading] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const form = useForm({
+    defaultValues: { worker_name: '', worker_type: 'labandera', work_date: '', notes: '' },
+  })
   const {
     register,
     handleSubmit,
     watch,
     reset,
     formState: { errors },
-  } = useForm({
-    defaultValues: { worker_name: '', worker_type: 'labandera', work_date: '', notes: '' },
-  })
+  } = form
+
+  const { restoreDraft, clearDraft } = useFormDraft(form, 'draft:bahay-team-entry')
 
   const workerType = watch('worker_type')
 
@@ -52,6 +56,7 @@ export default function BahayTeamLog() {
 
   const openModal = () => {
     reset({ worker_name: '', worker_type: 'labandera', work_date: new Date().toISOString().slice(0, 10), notes: '' })
+    restoreDraft()
     setModalOpen(true)
   }
 
@@ -91,6 +96,7 @@ export default function BahayTeamLog() {
 
     setSaving(false)
     setModalOpen(false)
+    clearDraft()
     showToast('Bahay team entry saved.')
     load()
   }

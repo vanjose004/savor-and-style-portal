@@ -24,7 +24,7 @@ export default function BookingNew() {
     if (clientError) {
       showToast(clientError.message, 'error')
       setSubmitting(false)
-      return
+      return false
     }
 
     const { data: booking, error: bookingError } = await supabase
@@ -36,7 +36,7 @@ export default function BookingNew() {
     if (bookingError) {
       showToast(bookingError.message, 'error')
       setSubmitting(false)
-      return
+      return false
     }
 
     await syncKidsMenuItems(booking.id, bookingFields.event_type, bookingFields.kids_menu)
@@ -51,7 +51,12 @@ export default function BookingNew() {
         <h1 className="font-heading text-2xl font-bold text-wine">New Booking</h1>
         <p className="text-sm text-text-muted mt-1">Enter client and event details to create a booking.</p>
       </div>
-      <BookingForm onSubmit={handleSubmit} submitting={submitting} submitLabel="Create Booking" />
+      <BookingForm
+        onSubmit={handleSubmit}
+        submitting={submitting}
+        submitLabel="Create Booking"
+        draftKey="draft:booking-new"
+      />
     </div>
   )
 }

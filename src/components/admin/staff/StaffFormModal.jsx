@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { supabase, createStaffSignupClient } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
+import { useFormDraft } from '../../../hooks/useFormDraft'
 import { suggestUsername } from '../../../utils/username'
 import Modal from '../../ui/Modal'
 import Button from '../../ui/Button'
@@ -14,14 +15,7 @@ const ROLE_OPTIONS = STAFF_ROLES.map((value) => ({ value, label: STAFF_ROLE_LABE
 export default function StaffFormModal({ open, onClose, staff, onSaved }) {
   const { showToast } = useToast()
   const isEdit = Boolean(staff)
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setValue,
-    getValues,
-    formState: { errors, isSubmitting },
-  } = useForm({
+  const form = useForm({
     defaultValues: {
       name: '',
       role: STAFF_ROLES[0],
@@ -33,6 +27,17 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
       password: '',
     },
   })
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    getValues,
+    formState: { errors, isSubmitting },
+  } = form
+
+  const draftKey = isEdit ? `draft:staff-edit-${staff.id}` : 'draft:staff-add'
+  const { restoreDraft, clearDraft } = useFormDraft(form, draftKey, { exclude: ['password'] })
 
   useEffect(() => {
     if (!open) return
@@ -46,6 +51,8 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
       end_date: staff?.end_date ?? '',
       password: '',
     })
+    restoreDraft()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, staff, reset])
 
   const handleNameBlur = (e) => {
@@ -76,6 +83,7 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
         return
       }
 
+      clearDraft()
       showToast('Staff member updated.')
     } else {
       // Staff log in by username, never email — Supabase Auth still requires
@@ -110,6 +118,7 @@ export default function StaffFormModal({ open, onClose, staff, onSaved }) {
         return
       }
 
+      clearDraft()
       showToast('Staff member added.')
     }
 

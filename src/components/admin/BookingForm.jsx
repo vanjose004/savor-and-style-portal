@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { Link } from 'react-router-dom'
+import { useFormDraft } from '../../hooks/useFormDraft'
 import Card from '../ui/Card'
 import Input from '../ui/Input'
 import Select from '../ui/Select'
@@ -22,13 +24,8 @@ const STATUS_OPTIONS = BOOKING_STATUSES.map((s) => ({
 
 const CHECKBOX_CLASS = 'rounded border-gold/40 text-wine focus:ring-2 focus:ring-wine/30'
 
-export default function BookingForm({ defaultValues, onSubmit, submitting, submitLabel = 'Save Booking' }) {
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm({
+export default function BookingForm({ defaultValues, onSubmit, submitting, submitLabel = 'Save Booking', draftKey }) {
+  const form = useForm({
     defaultValues: {
       name: '',
       phone: '',
@@ -58,12 +55,30 @@ export default function BookingForm({ defaultValues, onSubmit, submitting, submi
       ...defaultValues,
     },
   })
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = form
+
+  const { restoreDraft, clearDraft } = useFormDraft(form, draftKey ?? 'unused', { enabled: Boolean(draftKey) })
+
+  useEffect(() => {
+    restoreDraft()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const eventType = useWatch({ control, name: 'event_type' })
   const showKidsFields = KIDS_EVENT_TYPES.includes(eventType)
 
+  const handleFormSubmit = handleSubmit(async (values) => {
+    const result = await onSubmit(values)
+    if (result !== false) clearDraft()
+  })
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleFormSubmit} className="space-y-6">
       <Card title="Client Information">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
