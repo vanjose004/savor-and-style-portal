@@ -24,7 +24,7 @@ function getCountdown(eventDate) {
   if (days === null) return { label: '—', color: 'default' }
 
   if (days < 0) return { label: 'EVENT DONE', color: 'blue' }
-  if (days === 0) return { label: 'TODAY', color: 'danger' }
+  if (days === 0) return { label: 'TODAY', color: 'success' }
   if (days === 1) return { label: 'TOMORROW', color: 'orange' }
   return { label: 'UPCOMING', color: 'yellow' }
 }
