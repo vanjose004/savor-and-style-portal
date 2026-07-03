@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Wallet, Receipt, TrendingUp, TrendingDown, CreditCard, Plus, Minus, AlertCircle } from 'lucide-react'
+import { Wallet, Receipt, CreditCard, Plus, Minus, AlertCircle, PiggyBank } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
 import Card from '../../../components/ui/Card'
@@ -22,6 +22,8 @@ export default function AccountingDashboard() {
   const [recentTransactions, setRecentTransactions] = useState([])
   const [recentExpenses, setRecentExpenses] = useState([])
   const [incomeThisYear, setIncomeThisYear] = useState(0)
+  const [allTimeIncome, setAllTimeIncome] = useState(0)
+  const [allTimeExpenses, setAllTimeExpenses] = useState(0)
 
   const months = getLastMonths(6)
   const thisMonth = months[months.length - 1]
@@ -34,7 +36,7 @@ export default function AccountingDashboard() {
     async function load() {
       setLoading(true)
 
-      const [txRes, expRes, payRes, recentTxRes, recentExpRes, yearTxRes] = await Promise.all([
+      const [txRes, expRes, payRes, recentTxRes, recentExpRes, yearTxRes, allTxRes, allExpRes] = await Promise.all([
         supabase
           .from('transactions')
           .select('id, amount, category, transaction_date')
@@ -61,11 +63,13 @@ export default function AccountingDashboard() {
           .select('amount')
           .gte('transaction_date', `${year}-01-01`)
           .lte('transaction_date', `${year}-12-31`),
+        supabase.from('transactions').select('amount'),
+        supabase.from('expenses').select('amount'),
       ])
 
       if (cancelled) return
 
-      for (const res of [txRes, expRes, payRes, recentTxRes, recentExpRes, yearTxRes]) {
+      for (const res of [txRes, expRes, payRes, recentTxRes, recentExpRes, yearTxRes, allTxRes, allExpRes]) {
         if (res.error) showToast(res.error.message, 'error')
       }
 
@@ -75,6 +79,8 @@ export default function AccountingDashboard() {
       setRecentTransactions(recentTxRes.data ?? [])
       setRecentExpenses(recentExpRes.data ?? [])
       setIncomeThisYear((yearTxRes.data ?? []).reduce((sum, t) => sum + Number(t.amount), 0))
+      setAllTimeIncome((allTxRes.data ?? []).reduce((sum, t) => sum + Number(t.amount), 0))
+      setAllTimeExpenses((allExpRes.data ?? []).reduce((sum, e) => sum + Number(e.amount), 0))
       setLoading(false)
     }
 
@@ -101,7 +107,7 @@ export default function AccountingDashboard() {
 
   const incomeThisMonth = sumByRange(transactions, 'transaction_date', thisMonth.start, thisMonth.end)
   const expensesThisMonth = sumByRange(expenses, 'expense_date', thisMonth.start, thisMonth.end)
-  const netThisMonth = incomeThisMonth - expensesThisMonth
+  const cashOnHand = allTimeIncome - allTimeExpenses
   const incomeLastMonth = sumByRange(transactions, 'transaction_date', lastMonth.start, lastMonth.end)
   const totalUtangBalance = payables.reduce((sum, p) => sum + Number(p.balance), 0)
 
@@ -138,10 +144,10 @@ export default function AccountingDashboard() {
         <SummaryCard icon={Wallet} label="Income This Month" value={formatCurrency(incomeThisMonth)} color="success" />
         <SummaryCard icon={Receipt} label="Expenses This Month" value={formatCurrency(expensesThisMonth)} color="danger" />
         <SummaryCard
-          icon={netThisMonth >= 0 ? TrendingUp : TrendingDown}
-          label="Net Profit / Loss"
-          value={formatCurrency(netThisMonth)}
-          color={netThisMonth >= 0 ? 'success' : 'danger'}
+          icon={PiggyBank}
+          label="Cash on Hand"
+          value={formatCurrency(cashOnHand)}
+          color={cashOnHand >= 0 ? 'success' : 'danger'}
         />
         <SummaryCard icon={CreditCard} label="Total Utang Balance" value={formatCurrency(totalUtangBalance)} color="danger" />
       </div>
