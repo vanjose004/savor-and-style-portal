@@ -304,12 +304,32 @@ returns text as $$
 declare
   v_year text := to_char(now(), 'YYYY');
   v_seq int;
+  v_candidate text;
+  v_attempts int := 0;
 begin
-  select count(*) + 1 into v_seq
+  -- Serialize concurrent callers for the same year so two simultaneous
+  -- bookings can't compute the same next number.
+  perform pg_advisory_xact_lock(hashtext('generate_booking_code_' || v_year));
+
+  select coalesce(max(substring(booking_code from '(\d+)$')::int), 0) + 1
+  into v_seq
   from bookings
   where booking_code like 'SS-' || v_year || '-%';
 
-  return 'SS-' || v_year || '-' || lpad(v_seq::text, 3, '0');
+  loop
+    v_candidate := 'SS-' || v_year || '-' || lpad(v_seq::text, 3, '0');
+
+    exit when not exists (select 1 from bookings where booking_code = v_candidate);
+
+    v_seq := v_seq + 1;
+    v_attempts := v_attempts + 1;
+
+    if v_attempts >= 50 then
+      raise exception 'Could not generate a unique booking code after % attempts', v_attempts;
+    end if;
+  end loop;
+
+  return v_candidate;
 end;
 $$ language plpgsql security definer set search_path = public;
 
