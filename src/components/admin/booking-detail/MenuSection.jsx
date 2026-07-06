@@ -252,7 +252,10 @@ export default function MenuSection({ bookingId, menuConfirmed, onChange }) {
                   <p className="text-sm font-semibold text-wine mb-1">{category}</p>
                   <ul className="text-sm text-text-dark space-y-0.5">
                     {dishes.map((dish) => (
-                      <li key={dish.id}>{dish.dish_name}</li>
+                      <li key={dish.id} className="flex gap-1.5">
+                        <span aria-hidden="true">•</span>
+                        <span>{dish.dish_name}</span>
+                      </li>
                     ))}
                   </ul>
                 </div>

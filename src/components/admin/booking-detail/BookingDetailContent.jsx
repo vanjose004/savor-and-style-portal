@@ -120,7 +120,10 @@ export default function BookingDetailContent({ bookingId, variant = 'page', onCl
             <p className="text-text-muted text-sm mb-1">Kids Menu</p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-sm text-text-dark">
               {booking.kids_menu.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item} className="flex gap-1.5">
+                  <span aria-hidden="true">•</span>
+                  <span>{item}</span>
+                </li>
               ))}
             </ul>
           </div>
