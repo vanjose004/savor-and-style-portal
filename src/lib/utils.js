@@ -1,4 +1,4 @@
-import { startOfMonth, endOfMonth, format, subMonths } from 'date-fns'
+import { startOfMonth, endOfMonth, format, subMonths, formatDistanceToNow } from 'date-fns'
 
 /** Merge class names, skipping falsy values. */
 export function cn(...classes) {
@@ -49,6 +49,12 @@ export function formatDateTime(timestamp) {
     minute: '2-digit',
     hour12: true,
   })
+}
+
+/** Format a timestamp as relative time, e.g. "5 minutes ago" */
+export function formatRelativeTime(timestamp) {
+  if (!timestamp) return ''
+  return formatDistanceToNow(new Date(timestamp), { addSuffix: true })
 }
 
 /** Format an ISO date string (YYYY-MM-DD) as e.g. "Jun 28" (no year) */

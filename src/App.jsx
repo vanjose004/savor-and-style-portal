@@ -15,6 +15,7 @@ import BookingsList from './pages/admin/BookingsList'
 import BookingNew from './pages/admin/BookingNew'
 import BookingEdit from './pages/admin/BookingEdit'
 import BookingDetail from './pages/admin/BookingDetail'
+import UpcomingMenus from './pages/admin/UpcomingMenus'
 import MenuManager from './pages/admin/MenuManager'
 import ClientsList from './pages/admin/ClientsList'
 import ClientDetail from './pages/admin/ClientDetail'
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/admin/bookings/new" element={<BookingNew />} />
                 <Route path="/admin/bookings/:id" element={<BookingDetail />} />
                 <Route path="/admin/bookings/:id/edit" element={<BookingEdit />} />
+                <Route path="/admin/upcoming-menus" element={<UpcomingMenus />} />
                 <Route path="/admin/menu" element={<MenuManager />} />
                 <Route path="/admin/clients" element={<ClientsList />} />
                 <Route path="/admin/clients/:id" element={<ClientDetail />} />

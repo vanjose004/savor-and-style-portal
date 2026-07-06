@@ -1086,3 +1086,13 @@ insert into menu_master (dish_name, category) values
   ('Fried Chicken', 'Chicken'),
   ('Juice', 'Juice'),
   ('Kiddie Tables and Chairs', 'Kids');
+
+-- ============================================================================
+-- MIGRATION 25 — Notification read-tracking for change requests & menu suggestions
+-- ============================================================================
+
+alter table change_requests add column if not exists is_read boolean not null default false;
+alter table booking_menu_items add column if not exists is_read boolean not null default false;
+
+create index if not exists idx_change_requests_is_read on change_requests (is_read);
+create index if not exists idx_booking_menu_items_is_read on booking_menu_items (is_read);

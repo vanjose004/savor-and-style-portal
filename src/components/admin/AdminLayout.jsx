@@ -7,6 +7,7 @@ import {
   Users,
   ChefHat,
   UtensilsCrossed,
+  ShoppingCart,
   BarChart3,
   Settings,
   LogOut,
@@ -18,11 +19,14 @@ import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
 import { cn } from '../../lib/utils'
 import Logo from '../ui/Logo'
+import NotificationBell from './NotificationBell'
+import BookingDetailDrawer from './booking-detail/BookingDetailDrawer'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/calendar', label: 'Calendar', icon: Calendar },
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
+  { to: '/admin/upcoming-menus', label: 'Event Menu & Costing', icon: ShoppingCart },
   { to: '/admin/clients', label: 'Clients', icon: Users },
   { to: '/admin/staff', label: 'Staff', icon: ChefHat },
   { to: '/admin/payroll', label: 'Payroll', icon: Wallet },
@@ -36,11 +40,23 @@ export default function AdminLayout() {
   const { signOut } = useAuth()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [drawerBookingId, setDrawerBookingId] = useState(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [bookingsRefreshKey, setBookingsRefreshKey] = useState(0)
 
   const handleSignOut = async () => {
     await signOut()
     navigate('/admin/login')
   }
+
+  const openBookingDrawer = (bookingId) => {
+    setDrawerBookingId(bookingId)
+    setDrawerOpen(true)
+  }
+
+  const closeBookingDrawer = () => setDrawerOpen(false)
+
+  const handleBookingDeleted = () => setBookingsRefreshKey((prev) => prev + 1)
 
   return (
     <div className="min-h-screen flex bg-cream">
@@ -98,20 +114,30 @@ export default function AdminLayout() {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-warm-white border-b border-gold/20 sticky top-0 z-20">
-          <div className="flex items-center gap-2">
+        <header className="flex items-center px-4 lg:px-8 py-3 bg-warm-white border-b border-gold/20 sticky top-0 z-20">
+          <div className="flex items-center gap-2 lg:hidden">
             <Logo className="w-8 h-8 text-wine shrink-0" />
             <h1 className="font-heading text-lg font-bold text-wine">Savor and Style</h1>
           </div>
-          <button onClick={() => setMobileOpen(true)} aria-label="Open menu">
-            <MenuIcon className="w-6 h-6 text-wine" />
-          </button>
+          <div className="flex items-center gap-3 ml-auto">
+            <NotificationBell onOpenBooking={openBookingDrawer} />
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="lg:hidden">
+              <MenuIcon className="w-6 h-6 text-wine" />
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 p-4 lg:p-8 max-w-6xl w-full mx-auto">
-          <Outlet />
+          <Outlet context={{ openBookingDrawer, bookingsRefreshKey }} />
         </main>
       </div>
+
+      <BookingDetailDrawer
+        bookingId={drawerBookingId}
+        open={drawerOpen}
+        onClose={closeBookingDrawer}
+        onDeleted={handleBookingDeleted}
+      />
     </div>
   )
 }
