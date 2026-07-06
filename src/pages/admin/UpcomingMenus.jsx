@@ -99,7 +99,14 @@ export default function UpcomingMenus() {
                       <td className="px-3 py-2 text-text-muted">{booking.venue || '—'}</td>
                       <td className="px-3 py-2 text-text-dark">
                         {confirmedDishes.length > 0 ? (
-                          confirmedDishes.join(', ')
+                          <ul className="space-y-0.5">
+                            {confirmedDishes.map((dish, index) => (
+                              <li key={`${dish}-${index}`} className="flex gap-1.5">
+                                <span aria-hidden="true">•</span>
+                                <span>{dish}</span>
+                              </li>
+                            ))}
+                          </ul>
                         ) : (
                           <span className="text-text-muted italic">No menu confirmed yet</span>
                         )}
