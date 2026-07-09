@@ -45,12 +45,17 @@ Deno.serve(async (req) => {
     const body = await req.json()
     accessToken = body?.access_token
   } catch {
+    console.error('[send-booking-confirmation] invalid request body (not JSON)')
     return json({ error: 'Invalid request body' }, 400)
   }
 
   if (!accessToken) {
+    console.error('[send-booking-confirmation] rejected: access_token missing from request body')
     return json({ error: 'access_token is required' }, 400)
   }
+
+  // Never log the raw token — it's the same secret that grants portal access.
+  const tokenTag = `${accessToken.slice(0, 8)}…`
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL')!
   const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
@@ -62,77 +67,109 @@ Deno.serve(async (req) => {
     // The booking itself is already saved by this point (this function only
     // ever runs after submit_booking_request succeeds) — email just isn't
     // configured yet, so fail soft rather than blocking the caller.
-    return json({ error: 'Email is not configured yet' }, 503)
+    console.error(`[send-booking-confirmation] [${tokenTag}] not configured — missing RESEND_API_KEY or RESEND_FROM_EMAIL secret`)
+    return json({ stage: 'config', error: 'Email is not configured yet' }, 503)
   }
 
-  const adminClient = createClient(supabaseUrl, serviceRoleKey)
+  try {
+    const adminClient = createClient(supabaseUrl, serviceRoleKey)
 
-  const { data: booking, error } = await adminClient
-    .from('bookings')
-    .select('booking_code, event_type, event_date, venue, access_token, clients(name, email)')
-    .eq('access_token', accessToken)
-    .maybeSingle()
+    const { data: booking, error } = await adminClient
+      .from('bookings')
+      .select('booking_code, event_type, event_date, venue, access_token, clients(name, email)')
+      .eq('access_token', accessToken)
+      .maybeSingle()
 
-  if (error || !booking) {
-    return json({ error: 'Booking not found' }, 404)
+    if (error) {
+      console.error(`[send-booking-confirmation] [${tokenTag}] booking lookup failed: ${error.message}`)
+      return json({ stage: 'lookup', error: 'Booking lookup failed' }, 500)
+    }
+    if (!booking) {
+      console.error(`[send-booking-confirmation] [${tokenTag}] no booking found for this access_token`)
+      return json({ stage: 'lookup', error: 'Booking not found' }, 404)
+    }
+
+    console.log(`[send-booking-confirmation] [${booking.booking_code}] booking found, preparing email`)
+
+    const clientEmail = booking.clients?.email
+    if (!clientEmail) {
+      console.log(`[send-booking-confirmation] [${booking.booking_code}] skipped — no email on file for this client`)
+      return json({ stage: 'skipped', sent: false, reason: 'No email on file for this booking' }, 200)
+    }
+
+    const portalLink = `${siteUrl}/booking/${booking.access_token}`
+    const eventDate = new Date(`${booking.event_date}T00:00:00`).toLocaleDateString('en-PH', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+    const clientName = escapeHtml(booking.clients?.name ?? '')
+    const venue = escapeHtml(booking.venue ?? 'TBD')
+    const eventType = escapeHtml(booking.event_type)
+
+    const html = `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #1a1a1a;">
+        <h2 style="color:#722F37;">Thank you for your booking request!</h2>
+        <p>Hi ${clientName},</p>
+        <p>We've received your booking request. Here are your details:</p>
+        <table style="width:100%; border-collapse:collapse; margin: 12px 0;">
+          <tr><td style="padding:4px 0;"><strong>Booking Reference:</strong></td><td>${escapeHtml(booking.booking_code)}</td></tr>
+          <tr><td style="padding:4px 0;"><strong>Event Type:</strong></td><td>${eventType}</td></tr>
+          <tr><td style="padding:4px 0;"><strong>Event Date:</strong></td><td>${eventDate}</td></tr>
+          <tr><td style="padding:4px 0;"><strong>Venue:</strong></td><td>${venue}</td></tr>
+        </table>
+        <p>Our team will review your request and reach out to confirm the details and next steps.</p>
+        <p>
+          <a href="${portalLink}" style="display:inline-block; background:#722F37; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none;">
+            View My Booking
+          </a>
+        </p>
+        <p style="color:#777; font-size:12px;">
+          Save this link or your booking reference (${escapeHtml(booking.booking_code)}) to check your booking status anytime.
+        </p>
+      </div>
+    `
+
+    console.log(`[send-booking-confirmation] [${booking.booking_code}] calling Resend API, sending to ${clientEmail}`)
+
+    let resendRes: Response
+    try {
+      resendRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: clientEmail,
+          subject: `Booking Request Received — ${booking.booking_code}`,
+          html,
+        }),
+      })
+    } catch (fetchErr) {
+      const message = fetchErr instanceof Error ? fetchErr.message : String(fetchErr)
+      console.error(`[send-booking-confirmation] [${booking.booking_code}] network error calling Resend: ${message}`)
+      return json({ stage: 'send', sent: false, error: `Could not reach Resend: ${message}` }, 502)
+    }
+
+    if (!resendRes.ok) {
+      const errText = await resendRes.text()
+      console.error(
+        `[send-booking-confirmation] [${booking.booking_code}] Resend rejected the email — HTTP ${resendRes.status}: ${errText}`
+      )
+      return json({ stage: 'send', sent: false, error: `Failed to send email: ${errText}` }, 502)
+    }
+
+    const resendData = await resendRes.json().catch(() => ({}))
+    console.log(
+      `[send-booking-confirmation] [${booking.booking_code}] sent successfully — Resend email id: ${resendData?.id ?? 'unknown'}`
+    )
+
+    return json({ stage: 'send', sent: true, resend_id: resendData?.id ?? null })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    console.error(`[send-booking-confirmation] [${tokenTag}] unexpected error: ${message}`)
+    return json({ stage: 'unexpected', sent: false, error: message }, 500)
   }
-
-  const clientEmail = booking.clients?.email
-  if (!clientEmail) {
-    return json({ error: 'No email on file for this booking' }, 200)
-  }
-
-  const portalLink = `${siteUrl}/booking/${booking.access_token}`
-  const eventDate = new Date(`${booking.event_date}T00:00:00`).toLocaleDateString('en-PH', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-  const clientName = escapeHtml(booking.clients?.name ?? '')
-  const venue = escapeHtml(booking.venue ?? 'TBD')
-  const eventType = escapeHtml(booking.event_type)
-
-  const html = `
-    <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; color: #1a1a1a;">
-      <h2 style="color:#722F37;">Thank you for your booking request!</h2>
-      <p>Hi ${clientName},</p>
-      <p>We've received your booking request. Here are your details:</p>
-      <table style="width:100%; border-collapse:collapse; margin: 12px 0;">
-        <tr><td style="padding:4px 0;"><strong>Booking Reference:</strong></td><td>${escapeHtml(booking.booking_code)}</td></tr>
-        <tr><td style="padding:4px 0;"><strong>Event Type:</strong></td><td>${eventType}</td></tr>
-        <tr><td style="padding:4px 0;"><strong>Event Date:</strong></td><td>${eventDate}</td></tr>
-        <tr><td style="padding:4px 0;"><strong>Venue:</strong></td><td>${venue}</td></tr>
-      </table>
-      <p>Our team will review your request and reach out to confirm the details and next steps.</p>
-      <p>
-        <a href="${portalLink}" style="display:inline-block; background:#722F37; color:#fff; padding:10px 20px; border-radius:6px; text-decoration:none;">
-          View My Booking
-        </a>
-      </p>
-      <p style="color:#777; font-size:12px;">
-        Save this link or your booking reference (${escapeHtml(booking.booking_code)}) to check your booking status anytime.
-      </p>
-    </div>
-  `
-
-  const resendRes = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: clientEmail,
-      subject: `Booking Request Received — ${booking.booking_code}`,
-      html,
-    }),
-  })
-
-  if (!resendRes.ok) {
-    const errText = await resendRes.text()
-    return json({ error: `Failed to send email: ${errText}` }, 502)
-  }
-
-  return json({ success: true })
 })
