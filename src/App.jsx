@@ -46,6 +46,7 @@ import ChefDashboard from './pages/chef/ChefDashboard'
 import ChefEventDetail from './pages/chef/ChefEventDetail'
 import KitchenOrderSheet from './pages/chef/KitchenOrderSheet'
 import ClientPortal from './pages/ClientPortal'
+import BookingRequest from './pages/BookingRequest'
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/book" element={<BookingRequest />} />
 
             <Route path="/admin/login" element={<AdminLogin />} />
 

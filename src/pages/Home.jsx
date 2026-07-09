@@ -67,8 +67,21 @@ export default function Home() {
       <p className="text-text-muted mb-8">{BUSINESS.displayLocation}</p>
       <div className="flex flex-wrap items-center justify-center gap-4">
         <Link
-          to="/admin/login"
+          to="/book"
           className="px-6 py-3 rounded-lg bg-wine text-warm-white font-medium hover:bg-wine-dark transition-colors"
+        >
+          Book Now
+        </Link>
+        <button
+          type="button"
+          onClick={openModal}
+          className="px-6 py-3 rounded-lg border border-gold text-wine font-medium hover:bg-warm-white transition-colors"
+        >
+          View My Booking
+        </button>
+        <Link
+          to="/admin/login"
+          className="px-6 py-3 rounded-lg border border-gold text-wine font-medium hover:bg-warm-white transition-colors"
         >
           Admin Login
         </Link>
@@ -78,13 +91,6 @@ export default function Home() {
         >
           Staff Login
         </Link>
-        <button
-          type="button"
-          onClick={openModal}
-          className="px-6 py-3 rounded-lg border border-gold text-wine font-medium hover:bg-warm-white transition-colors"
-        >
-          View My Booking
-        </button>
       </div>
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="View My Booking">

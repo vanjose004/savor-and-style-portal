@@ -74,6 +74,7 @@ begin
 end;
 $$ language plpgsql security definer set search_path = public;
 
+drop trigger if exists change_requests_after_update_timeline on change_requests;
 create trigger change_requests_after_update_timeline
 after update on change_requests
 for each row execute function trg_change_requests_after_update_timeline();
