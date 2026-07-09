@@ -8,6 +8,8 @@ import EmptyState from '../ui/EmptyState'
 import { formatDateTime } from '../../lib/utils'
 import { UPDATE_TYPE_LABELS } from '../../lib/constants'
 
+const POLL_INTERVAL_MS = 15000
+
 export default function ClientUpdatesCard({ accessToken }) {
   const [updates, setUpdates] = useState([])
   const [loading, setLoading] = useState(true)
@@ -15,18 +17,20 @@ export default function ClientUpdatesCard({ accessToken }) {
   useEffect(() => {
     let cancelled = false
 
-    async function load() {
-      setLoading(true)
+    async function load(showSpinner) {
+      if (showSpinner) setLoading(true)
       const { data, error } = await supabase.rpc('get_booking_updates_by_token', { p_access_token: accessToken })
       if (cancelled) return
       if (!error) setUpdates(data ?? [])
-      setLoading(false)
+      if (showSpinner) setLoading(false)
     }
 
-    load()
+    load(true)
+    const interval = setInterval(() => load(false), POLL_INTERVAL_MS)
 
     return () => {
       cancelled = true
+      clearInterval(interval)
     }
   }, [accessToken])
 

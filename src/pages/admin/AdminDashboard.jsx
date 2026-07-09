@@ -46,6 +46,20 @@ export default function AdminDashboard() {
   const [alerts, setAlerts] = useState({ pendingChangeRequests: 0, pendingMenuSuggestions: 0 })
   const [upcomingEvents, setUpcomingEvents] = useState([])
   const [activity, setActivity] = useState([])
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-dashboard-change-requests')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'change_requests' }, () =>
+        setRefreshKey((key) => key + 1)
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
@@ -204,7 +218,7 @@ export default function AdminDashboard() {
     return () => {
       cancelled = true
     }
-  }, [showToast])
+  }, [showToast, refreshKey])
 
   if (loading) {
     return (

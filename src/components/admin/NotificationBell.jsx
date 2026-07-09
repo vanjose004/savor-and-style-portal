@@ -79,9 +79,16 @@ export default function NotificationBell({ onOpenBooking }) {
     load()
     const interval = setInterval(load, POLL_INTERVAL_MS)
 
+    const channel = supabase
+      .channel('admin-notifications')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'change_requests' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'booking_menu_items' }, load)
+      .subscribe()
+
     return () => {
       cancelled = true
       clearInterval(interval)
+      supabase.removeChannel(channel)
     }
   }, [])
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Check, X, MessageSquareWarning } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
+import { useAuth } from '../../../hooks/useAuth'
 import Card from '../../ui/Card'
 import Button from '../../ui/Button'
 import Badge from '../../ui/Badge'
@@ -14,6 +15,7 @@ import { CHANGE_REQUEST_TYPE_LABELS } from '../../../lib/constants'
 
 export default function ChangeRequestsSection({ bookingId }) {
   const { showToast } = useToast()
+  const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [responses, setResponses] = useState({})
@@ -23,7 +25,7 @@ export default function ChangeRequestsSection({ bookingId }) {
     setLoading(true)
     const { data, error } = await supabase
       .from('change_requests')
-      .select('*')
+      .select('*, resolved_by_admin:admins!resolved_by(name)')
       .eq('booking_id', bookingId)
       .order('submitted_at', { ascending: false })
 
@@ -40,6 +42,22 @@ export default function ChangeRequestsSection({ bookingId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId])
 
+  useEffect(() => {
+    const channel = supabase
+      .channel(`change_requests-booking-${bookingId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'change_requests', filter: `booking_id=eq.${bookingId}` },
+        () => loadRequests()
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingId])
+
   const handleDecision = async (request, status) => {
     setDecidingId(request.id)
     const { error } = await supabase
@@ -47,6 +65,7 @@ export default function ChangeRequestsSection({ bookingId }) {
       .update({
         status,
         resolved_at: new Date().toISOString(),
+        resolved_by: user?.id ?? null,
         admin_response: responses[request.id]?.trim() || null,
       })
       .eq('id', request.id)
@@ -108,11 +127,18 @@ export default function ChangeRequestsSection({ bookingId }) {
                   </div>
                 </div>
               ) : (
-                request.admin_response && (
-                  <p className="text-xs text-text-muted bg-cream rounded-lg px-3 py-2 mt-2 whitespace-pre-wrap">
-                    Response: {request.admin_response}
+                <div className="mt-2 space-y-1.5">
+                  <p className="text-xs text-text-muted">
+                    {request.status === 'approved' ? 'Approved' : 'Rejected'}
+                    {request.resolved_by_admin?.name ? ` by ${request.resolved_by_admin.name}` : ''}
+                    {request.resolved_at ? ` on ${formatDateTime(request.resolved_at)}` : ''}
                   </p>
-                )
+                  {request.admin_response && (
+                    <p className="text-xs text-text-muted bg-cream rounded-lg px-3 py-2 whitespace-pre-wrap">
+                      Response: {request.admin_response}
+                    </p>
+                  )}
+                </div>
               )}
             </li>
           ))}

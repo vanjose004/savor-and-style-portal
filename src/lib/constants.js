@@ -146,6 +146,7 @@ export const UPDATE_TYPE_LABELS = {
   confirmation: 'Confirmation',
   reminder: 'Reminder',
   contract_update: 'Contract Update',
+  change_request_update: 'Change Request Update',
 }
 
 export const CHANGE_REQUEST_TYPE_LABELS = {
