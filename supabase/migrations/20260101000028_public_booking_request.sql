@@ -88,7 +88,13 @@ begin
     p_menu_package, coalesce(p_lechon_chopping, false), v_freebies,
     nullif(trim(p_special_requests), ''), 'pending'
   )
-  returning id, booking_code, access_token
+  -- booking_code/access_token must be table-qualified here: this function's
+  -- RETURNS TABLE(booking_id, booking_code, access_token) implicitly
+  -- declares those same names as PL/pgSQL variables in scope, and a bare
+  -- reference in this RETURNING clause is ambiguous between that variable
+  -- and the bookings column of the same name (PL/pgSQL's default
+  -- variable_conflict = error rejects it outright rather than guessing).
+  returning id, bookings.booking_code, bookings.access_token
   into v_booking_id, v_booking_code, v_access_token;
 
   return query select v_booking_id, v_booking_code, v_access_token;
