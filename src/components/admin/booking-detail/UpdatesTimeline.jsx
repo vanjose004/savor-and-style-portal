@@ -59,6 +59,22 @@ export default function UpdatesTimeline({ bookingId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId])
 
+  useEffect(() => {
+    const channel = supabase
+      .channel(`booking-updates-${bookingId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'booking_updates', filter: `booking_id=eq.${bookingId}` },
+        () => loadUpdates()
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookingId])
+
   const onSubmit = async (values) => {
     setSubmitting(true)
     const { error } = await supabase.from('booking_updates').insert({

@@ -343,6 +343,27 @@ export async function generateContractPDF(booking) {
   w.bullet('Any amendment must be in writing and agreed upon by both parties.')
   w.bullet('This Agreement shall be governed by the laws of the Republic of the Philippines.')
 
+  // Displayed prominently (wine band, not a plain heading) right before the
+  // signature block so it's the last substantive clause the client reads.
+  w.band('DELIVERED SERVICES & PAYMENT CLAUSE')
+  w.paragraph(
+    'All services outlined in this contract — including food, catering equipment, waiters, and decorations — ' +
+      'are considered fully delivered once physically present at the event venue on the contracted date and time.'
+  )
+  w.spacer(1)
+  w.note('Upon delivery of services to the venue, the Client agrees to payment in full of the total contract amount.')
+  w.spacer(1)
+  w.paragraph('No refunds, credits, or payment reductions shall be issued based on:')
+  w.bullet('Perceived quality or presentation of delivered services')
+  w.bullet('Changes in event circumstances post-delivery')
+  w.bullet('Any negative reviews or public statements by guests')
+  w.spacer(1)
+  w.paragraph(
+    `${BUSINESS.name} reserves the right to address feedback directly from the Client. Third-party guest ` +
+      'feedback, complaints, or negative remarks shall not be grounds for withholding payment, contract disputes, ' +
+      `or service liability claims against ${BUSINESS.name}.`
+  )
+
   w.heading('AGREEMENT CONFIRMATION')
   w.paragraph('By signing below, both parties confirm that they have read, understood, and agreed to all the terms stated above.')
   w.spacer(12)
