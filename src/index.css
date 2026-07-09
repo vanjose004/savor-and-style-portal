@@ -27,3 +27,20 @@ body {
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   Admin Christmas theme — scoped color overrides.
+   Every /admin/* route renders inside .admin-shell (AdminLayout's root),
+   so overriding the same custom properties here only changes how the
+   shared bg-wine/text-wine/border-gold/etc. utilities resolve *inside*
+   that subtree. Card, Badge, Button, StatusBadge and friends are never
+   edited — client-facing pages (/, /book, /booking/:access_token) never
+   render inside .admin-shell, so they keep the original brand palette
+   from @theme above untouched.
+   ───────────────────────────────────────────────────────────────────── */
+.admin-shell {
+  --color-wine: #a51c2c; /* deeper Christmas crimson, was the muted burgundy */
+  --color-wine-dark: #6e1220;
+  --color-gold: #d4af37; /* brighter metallic gold for buttons/borders */
+  --color-success: #14532d; /* deep forest/holly green, was the flatter green */
+}

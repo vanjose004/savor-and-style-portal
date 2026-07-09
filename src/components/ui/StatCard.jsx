@@ -1,10 +1,13 @@
 import { cn } from '../../lib/utils'
 
+// Admin-only (never rendered on client-facing pages) — the festive top bar
+// below is safe to bake in directly instead of opting in per call site.
 export default function StatCard({ icon: Icon, label, value, className }) {
   return (
     <div
       className={cn(
-        'bg-warm-white rounded-xl border border-gold/20 shadow-sm p-5 flex items-center gap-4',
+        'relative overflow-hidden bg-warm-white rounded-xl border border-gold/20 shadow-sm p-5 flex items-center gap-4',
+        "before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-gradient-to-r before:from-wine before:via-gold before:to-success",
         className
       )}
     >

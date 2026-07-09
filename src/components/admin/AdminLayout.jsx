@@ -14,6 +14,7 @@ import {
   Menu as MenuIcon,
   Wallet,
   PiggyBank,
+  Snowflake,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
@@ -59,19 +60,23 @@ export default function AdminLayout() {
   const handleBookingDeleted = () => setBookingsRefreshKey((prev) => prev + 1)
 
   return (
-    <div className="min-h-screen flex bg-cream">
+    <div className="admin-shell min-h-screen flex bg-cream">
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-40 w-64 bg-wine text-warm-white flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="px-6 py-5 border-b border-warm-white/10 flex items-center gap-3">
+        {/* Festive top accent — crimson / gold / holly, subtle */}
+        <div className="h-1.5 shrink-0 bg-gradient-to-r from-wine via-gold to-success" aria-hidden="true" />
+
+        <div className="px-6 py-5 border-b border-warm-white/10 flex items-center gap-3 relative">
           <Logo className="w-10 h-10 text-warm-white shrink-0" />
           <div>
             <h1 className="font-heading text-xl font-bold leading-tight">Savor and Style</h1>
             <p className="text-xs text-warm-white/70 mt-1">{BUSINESS.displayLocation}</p>
           </div>
+          <Snowflake className="w-4 h-4 text-warm-white/25 absolute top-3 right-4" aria-hidden="true" />
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">

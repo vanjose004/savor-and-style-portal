@@ -39,8 +39,8 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cream px-4">
-      <Card className="w-full max-w-sm">
+    <div className="admin-shell min-h-screen flex items-center justify-center bg-cream px-4">
+      <Card className="w-full max-w-sm relative overflow-hidden before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-gradient-to-r before:from-wine before:via-gold before:to-success">
         <div className="flex flex-col items-center text-center mb-6">
           <UtensilsCrossed className="w-8 h-8 text-wine mb-2" />
           <h1 className="text-xl font-bold text-wine">{BUSINESS.name}</h1>
