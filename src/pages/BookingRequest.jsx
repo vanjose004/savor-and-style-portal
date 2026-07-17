@@ -85,10 +85,15 @@ export default function BookingRequest() {
     setSubmitting(false)
     setResult(booking)
 
-    // Best-effort — the booking is already saved even if the email fails
-    // (e.g. Resend isn't configured yet on this deployment).
+    // Best-effort — the booking is already saved even if these fail (e.g.
+    // Resend or the Telegram bot aren't configured yet on this deployment).
     if (booking?.access_token) {
       supabase.functions.invoke('send-booking-confirmation', { body: { access_token: booking.access_token } }).catch(() => {})
+      fetch('/api/notify-new-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: booking.access_token }),
+      }).catch(() => {})
     }
   }
 

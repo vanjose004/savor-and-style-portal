@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 export default defineConfig([
   globalIgnores(['dist']),
   {
-    files: ['**/*.{js,jsx}'],
+    files: ['src/**/*.{js,jsx}'],
     extends: [
       js.configs.recommended,
       reactHooks.configs.flat.recommended,
@@ -22,6 +22,16 @@ export default defineConfig([
       // synchronously at the start of the fetch — the standard pattern for
       // a non-Suspense, non-React-Compiler codebase.
       'react-hooks/set-state-in-effect': 'off',
+    },
+  },
+  {
+    // Vercel Serverless Functions (Node runtime, not the browser) — the
+    // Telegram bot backend. No React here, so none of the React-specific
+    // plugins above apply.
+    files: ['api/**/*.js'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      globals: globals.node,
     },
   },
 ])
