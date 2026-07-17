@@ -7,6 +7,7 @@ import { booking, resolveSearchPick } from './_lib/commands/booking.js'
 import { help } from './_lib/commands/help.js'
 import { handleExpenseMessage, handleExpenseCallback } from './_lib/commands/expenseFlow.js'
 import { handlePaymentMessage, handlePaymentCallback, resolvePaymentBookingPick } from './_lib/commands/paymentFlow.js'
+import { tryHandleQuery } from './_lib/nlu.js'
 
 // Telegram-facing webhook entrypoint. Every handler below is fully
 // awaited before this function responds — Vercel doesn't guarantee a
@@ -84,14 +85,20 @@ async function handleMessage(message, chatId) {
     return
   }
 
-  // "Bayad ..." always starts a fresh payment flow; anything else is
-  // treated as an expense-logging attempt. Neither resumes a pending
-  // flow via free text — only button taps resume; a fresh message
-  // always means a fresh intent.
+  // "Bayad ..." always starts a fresh payment flow; a recognized
+  // read-only query (see nlu.js) answers directly; anything else is
+  // treated as an expense-logging attempt. None of these resume a
+  // pending flow via free text — only button taps resume; a fresh
+  // message always means a fresh intent.
   if (/^bayad\b/i.test(text)) {
+    await clearPendingForChat(chatId)
     await handlePaymentMessage(chatId, text)
     return
   }
+
+  await clearPendingForChat(chatId)
+  const handled = await tryHandleQuery(chatId, text)
+  if (handled) return
 
   await handleExpenseMessage(chatId, text)
 }
