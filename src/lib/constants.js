@@ -6,6 +6,12 @@ export const BUSINESS = {
   phone: '0948-599-2866',
   facebook: 'Savor and Style Catering Services',
   facebookUrl: 'https://www.facebook.com/EstrellasCateringServices/',
+  // Hardcoded (not window.location.origin) specifically for QR codes that
+  // get printed/screenshotted and live indefinitely — e.g. the permanent
+  // home-base attendance QR. Generating one from a preview-deploy domain
+  // by accident would silently break a physically-posted poster forever.
+  // Update if a custom domain is ever attached.
+  siteUrl: 'https://savor-and-style-portal.vercel.app',
 }
 
 export const EVENT_TYPES = [

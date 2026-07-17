@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { QRCodeSVG } from 'qrcode.react'
+import { Copy, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useToast } from '../../hooks/useToast'
@@ -17,10 +19,13 @@ import {
 } from '../../lib/constants'
 import { formatCurrency } from '../../lib/utils'
 
+const HOME_CHECKIN_URL = `${BUSINESS.siteUrl}/attendance/home`
+
 export default function Settings() {
   const { user } = useAuth()
   const { showToast } = useToast()
   const [submitting, setSubmitting] = useState(false)
+  const [qrCopied, setQrCopied] = useState(false)
   const {
     register,
     handleSubmit,
@@ -45,6 +50,17 @@ export default function Settings() {
 
     showToast('Password updated.')
     reset({ password: '', confirmPassword: '' })
+  }
+
+  const handleCopyQr = async () => {
+    try {
+      await navigator.clipboard.writeText(HOME_CHECKIN_URL)
+      setQrCopied(true)
+      showToast('Link copied to clipboard.')
+      setTimeout(() => setQrCopied(false), 2000)
+    } catch {
+      showToast('Could not copy link.', 'error')
+    }
   }
 
   return (
@@ -79,6 +95,22 @@ export default function Settings() {
         <p className="text-xs text-text-muted mt-4">
           To change pricing and fees, update src/lib/constants.js in the codebase.
         </p>
+      </Card>
+
+      <Card title="Home Check-in QR">
+        <p className="text-xs text-text-muted mb-3">
+          Permanent QR code — i-print at i-post sa bahay/home base. Walang expiry, gumagana araw-araw.
+        </p>
+        <div className="flex justify-center bg-warm-white p-4 rounded-lg border border-gold/20 mb-3 max-w-xs">
+          <QRCodeSVG value={HOME_CHECKIN_URL} size={200} />
+        </div>
+        <p className="text-xs text-text-dark break-all bg-cream rounded-lg px-3 py-2 border border-gold/20 mb-3 max-w-sm">
+          {HOME_CHECKIN_URL}
+        </p>
+        <Button size="sm" variant="secondary" onClick={handleCopyQr}>
+          {qrCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+          {qrCopied ? 'Copied' : 'Copy Link'}
+        </Button>
       </Card>
 
       <Card title="Account">

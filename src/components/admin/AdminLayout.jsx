@@ -15,6 +15,7 @@ import {
   Wallet,
   PiggyBank,
   Snowflake,
+  QrCode,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { to: '/admin/upcoming-menus', label: 'Event Menu & Costing', icon: ShoppingCart },
   { to: '/admin/clients', label: 'Clients', icon: Users },
   { to: '/admin/staff', label: 'Staff', icon: ChefHat },
+  { to: '/admin/attendance', label: 'Attendance', icon: QrCode },
   { to: '/admin/payroll', label: 'Payroll', icon: Wallet },
   { to: '/admin/menu', label: 'Menu', icon: UtensilsCrossed },
   { to: '/admin/accounting', label: 'Accounting', icon: PiggyBank },

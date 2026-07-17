@@ -20,6 +20,7 @@ import MenuManager from './pages/admin/MenuManager'
 import ClientsList from './pages/admin/ClientsList'
 import ClientDetail from './pages/admin/ClientDetail'
 import StaffManagement from './pages/admin/StaffManagement'
+import Attendance from './pages/admin/Attendance'
 import AdminPayroll from './pages/admin/AdminPayroll'
 import AdminPayrollDetail from './pages/admin/AdminPayrollDetail'
 import Reports from './pages/admin/Reports'
@@ -47,6 +48,8 @@ import ChefEventDetail from './pages/chef/ChefEventDetail'
 import KitchenOrderSheet from './pages/chef/KitchenOrderSheet'
 import ClientPortal from './pages/ClientPortal'
 import BookingRequest from './pages/BookingRequest'
+import HomeCheckin from './pages/HomeCheckin'
+import EventCheckin from './pages/EventCheckin'
 
 function App() {
   return (
@@ -72,6 +75,7 @@ function App() {
                 <Route path="/admin/clients" element={<ClientsList />} />
                 <Route path="/admin/clients/:id" element={<ClientDetail />} />
                 <Route path="/admin/staff" element={<StaffManagement />} />
+                <Route path="/admin/attendance" element={<Attendance />} />
                 <Route path="/admin/payroll" element={<AdminPayroll />} />
                 <Route path="/admin/payroll/:reportId" element={<AdminPayrollDetail />} />
                 <Route path="/admin/reports" element={<Reports />} />
@@ -115,6 +119,8 @@ function App() {
             </Route>
 
             <Route path="/booking/:access_token" element={<ClientPortal />} />
+            <Route path="/attendance/home" element={<HomeCheckin />} />
+            <Route path="/attendance/event/:qr_token" element={<EventCheckin />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
