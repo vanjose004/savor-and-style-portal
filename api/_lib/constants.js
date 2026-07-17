@@ -8,4 +8,5 @@ export {
   PAYMENT_TYPES,
   PAYMENT_TYPE_LABELS,
   PAYMENT_METHODS,
+  EVENT_TYPES,
 } from '../../src/lib/constants.js'

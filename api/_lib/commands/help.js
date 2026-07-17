@@ -14,6 +14,10 @@ const HELP_TEXT = `👋 Hoy boss! Ito ang magagawa ko:
 <b>Mag-log ng bayad</b> — type mo lang:
 <i>Bayad Maria 15000</i>
 
+<b>Gumawa ng bagong booking</b> — type mo lang:
+<i>Bagong booking — Maria Santos, Birthday, July 25, 50 pax, 35000</i>
+(Pangalan, Event Type, Date, Pax, Amount — sunod-sunod, kinukuwenta ng comma)
+
 <b>Tanungin mo ako — pera/income/expenses:</b>
 <i>Meron pa ba?</i> / <i>Magkano pera ko?</i> — cash on hand
 <i>Magkano utang ko?</i> — utang mo sa iba

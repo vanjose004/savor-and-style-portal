@@ -7,6 +7,8 @@ import { booking, resolveSearchPick } from './_lib/commands/booking.js'
 import { help } from './_lib/commands/help.js'
 import { handleExpenseMessage, handleExpenseCallback } from './_lib/commands/expenseFlow.js'
 import { handlePaymentMessage, handlePaymentCallback, resolvePaymentBookingPick } from './_lib/commands/paymentFlow.js'
+import { handleNewBookingMessage, handleNewBookingCallback } from './_lib/commands/createBookingFlow.js'
+import { isNewBookingMessage } from './_lib/parseNewBooking.js'
 import { tryHandleQuery } from './_lib/nlu.js'
 
 // Telegram-facing webhook entrypoint. Every handler below is fully
@@ -85,14 +87,21 @@ async function handleMessage(message, chatId) {
     return
   }
 
-  // "Bayad ..." always starts a fresh payment flow; a recognized
-  // read-only query (see nlu.js) answers directly; anything else is
-  // treated as an expense-logging attempt. None of these resume a
-  // pending flow via free text — only button taps resume; a fresh
-  // message always means a fresh intent.
+  // "Bayad ..." always starts a fresh payment flow; "Bagong booking ..."
+  // starts a fresh booking-creation flow; a recognized read-only query
+  // (see nlu.js) answers directly; anything else is treated as an
+  // expense-logging attempt. None of these resume a pending flow via
+  // free text — only button taps resume; a fresh message always means a
+  // fresh intent.
   if (/^bayad\b/i.test(text)) {
     await clearPendingForChat(chatId)
     await handlePaymentMessage(chatId, text)
+    return
+  }
+
+  if (isNewBookingMessage(text)) {
+    await clearPendingForChat(chatId)
+    await handleNewBookingMessage(chatId, text)
     return
   }
 
@@ -150,5 +159,10 @@ async function handleCallbackQuery(callbackQuery, chatId) {
 
   if (type === 'confirm_payment') {
     await handlePaymentCallback(pending, chatId, messageId, action, extra)
+    return
+  }
+
+  if (type === 'confirm_booking') {
+    await handleNewBookingCallback(pending, chatId, messageId, action, extra)
   }
 }
