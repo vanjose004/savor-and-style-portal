@@ -127,6 +127,19 @@ export const DEFAULT_SERVICE_HOURS = 5
 export const EXTRA_HOUR_RATE_PER_STAFF = 100
 export const LECHON_CHOPPING_FEE = 300
 
+// PLACEHOLDER PRICING — flat rate per package, confirmed sample-only by the
+// business owner (2026-07-09), pending the real numbers from the separate
+// quotation app. Update here when finalized; this is the single place the
+// portal reads package pricing from (booking detail breakdown, dashboard
+// activity feed) so every display in THIS app stays consistent by
+// construction. Cake Table add-on is confirmed free — no price entry needed.
+export const MENU_PACKAGE_PRICES = {
+  'Package 1': 35000,
+  'Package 2': 40000,
+  'Package 3': 45000,
+  'Package 4': 50000,
+}
+
 // Shown wherever lechon_chopping is true — on the booking detail page and in
 // the "Other Inclusions / Requests / Notes" section of the Booking Form PDF.
 export const LECHON_NOTE = `Lechon chopping fee: ₱${LECHON_CHOPPING_FEE} payable directly to staff`

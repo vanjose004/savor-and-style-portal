@@ -29,7 +29,7 @@ export default function BookingNew() {
 
     const { data: booking, error: bookingError } = await supabase
       .from('bookings')
-      .insert({ ...bookingFields, client_id: client.id })
+      .insert({ ...bookingFields, client_id: client.id, is_read: true })
       .select('id')
       .single()
 

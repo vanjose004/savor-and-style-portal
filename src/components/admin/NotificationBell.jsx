@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bell, MessageSquareWarning, UtensilsCrossed } from 'lucide-react'
+import { Bell, MessageSquareWarning, UtensilsCrossed, CalendarPlus } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import Spinner from '../ui/Spinner'
 import { formatRelativeTime, cn } from '../../lib/utils'
@@ -9,7 +9,14 @@ const POLL_INTERVAL_MS = 60000
 const RECENT_LIMIT = 8
 
 async function fetchNotifications() {
-  const [changeRequestsRes, menuSuggestionsRes, unreadChangeRequestsRes, unreadMenuSuggestionsRes] = await Promise.all([
+  const [
+    changeRequestsRes,
+    menuSuggestionsRes,
+    newBookingsRes,
+    unreadChangeRequestsRes,
+    unreadMenuSuggestionsRes,
+    unreadBookingsRes,
+  ] = await Promise.all([
     supabase
       .from('change_requests')
       .select('id, request_type, submitted_at, is_read, booking_id, bookings(booking_code, clients(name))')
@@ -21,12 +28,18 @@ async function fetchNotifications() {
       .eq('suggested_by', 'client')
       .order('created_at', { ascending: false })
       .limit(RECENT_LIMIT),
+    supabase
+      .from('bookings')
+      .select('id, booking_code, event_type, created_at, is_read, clients(name)')
+      .order('created_at', { ascending: false })
+      .limit(RECENT_LIMIT),
     supabase.from('change_requests').select('*', { count: 'exact', head: true }).eq('is_read', false),
     supabase
       .from('booking_menu_items')
       .select('*', { count: 'exact', head: true })
       .eq('suggested_by', 'client')
       .eq('is_read', false),
+    supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('is_read', false),
   ])
 
   const notifications = [
@@ -52,9 +65,21 @@ async function fetchNotifications() {
       time: row.created_at,
       isRead: row.is_read,
     })),
+    ...(newBookingsRes.data ?? []).map((row) => ({
+      id: `booking-${row.id}`,
+      table: 'bookings',
+      rowId: row.id,
+      bookingId: row.id,
+      clientName: row.clients?.name ?? 'Unknown client',
+      typeLabel: `New Booking Request: ${row.booking_code} (${row.event_type})`,
+      icon: CalendarPlus,
+      time: row.created_at,
+      isRead: row.is_read,
+    })),
   ].sort((a, b) => new Date(b.time) - new Date(a.time))
 
-  const unreadCount = (unreadChangeRequestsRes.count ?? 0) + (unreadMenuSuggestionsRes.count ?? 0)
+  const unreadCount =
+    (unreadChangeRequestsRes.count ?? 0) + (unreadMenuSuggestionsRes.count ?? 0) + (unreadBookingsRes.count ?? 0)
 
   return { notifications, unreadCount }
 }
@@ -83,6 +108,7 @@ export default function NotificationBell({ onOpenBooking }) {
       .channel('admin-notifications')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'change_requests' }, load)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'booking_menu_items' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, load)
       .subscribe()
 
     return () => {

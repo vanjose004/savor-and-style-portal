@@ -10,9 +10,12 @@ import Select from '../components/ui/Select'
 import Textarea from '../components/ui/Textarea'
 import Button from '../components/ui/Button'
 import Logo from '../components/ui/Logo'
-import { BUSINESS, EVENT_TYPES, DEFAULT_INCLUSIONS } from '../lib/constants'
+import { BUSINESS, EVENT_TYPES, DEFAULT_INCLUSIONS, MENU_PACKAGE_PRICES } from '../lib/constants'
 
-const MENU_PACKAGES = ['Package 1', 'Package 2', 'Package 3', 'Package 4']
+// Same package labels used for admin pricing (MENU_PACKAGE_PRICES) — kept
+// as one list so this form can never drift out of sync with what the
+// admin dashboard prices a submission at.
+const MENU_PACKAGES = Object.keys(MENU_PACKAGE_PRICES)
 const CHECKBOX_CLASS = 'rounded border-gold/40 text-wine focus:ring-2 focus:ring-wine/30'
 
 function todayStr() {

@@ -1,5 +1,33 @@
 import { supabase } from './supabase'
-import { RESERVATION_FEE, DEFAULT_SERVICE_HOURS, KIDS_EVENT_TYPES, KIDS_MENU_ITEM_CATEGORIES } from './constants'
+import {
+  RESERVATION_FEE,
+  DEFAULT_SERVICE_HOURS,
+  KIDS_EVENT_TYPES,
+  KIDS_MENU_ITEM_CATEGORIES,
+  MENU_PACKAGE_PRICES,
+  LECHON_CHOPPING_FEE,
+} from './constants'
+
+/**
+ * Package price + add-on fees for a booking, using the same
+ * MENU_PACKAGE_PRICES table everywhere in the portal so any display of a
+ * booking's price breakdown stays consistent by construction. Cake Table
+ * is a confirmed-free add-on, so it never contributes to the total.
+ * Returns null if the booking has no menu_package (admin-created bookings
+ * predating the public /book form, or ones where a package wasn't set).
+ */
+export function calculateBookingQuote(booking) {
+  const packagePrice = MENU_PACKAGE_PRICES[booking?.menu_package]
+  if (packagePrice === undefined) return null
+
+  const lechonFee = booking.lechon_chopping ? LECHON_CHOPPING_FEE : 0
+
+  return {
+    packagePrice,
+    lechonFee,
+    total: packagePrice + lechonFee,
+  }
+}
 
 /**
  * Split a BookingForm submission into the `clients` and `bookings` table

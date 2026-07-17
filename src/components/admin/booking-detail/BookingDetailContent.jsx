@@ -9,8 +9,9 @@ import Spinner from '../../ui/Spinner'
 import StatusBadge from '../../ui/StatusBadge'
 import Field from '../../ui/Field'
 import Modal from '../../ui/Modal'
-import { formatDate, formatTime } from '../../../lib/utils'
+import { formatDate, formatTime, formatCurrency } from '../../../lib/utils'
 import { LECHON_NOTE, KIDS_EVENT_TYPES } from '../../../lib/constants'
+import { calculateBookingQuote } from '../../../lib/bookings'
 import MenuSection from './MenuSection'
 import FreebiesSection from './FreebiesSection'
 import PaymentSection from './PaymentSection'
@@ -67,6 +68,8 @@ export default function BookingDetailContent({ bookingId, variant = 'page', onCl
     return <p className="text-sm text-text-muted">Booking not found.</p>
   }
 
+  const quote = calculateBookingQuote(booking)
+
   const handleDelete = async () => {
     setDeleting(true)
     const { error } = await supabase.from('bookings').delete().eq('id', booking.id)
@@ -102,6 +105,7 @@ export default function BookingDetailContent({ bookingId, variant = 'page', onCl
           <Field label="Event Motif" value={booking.event_motif || '—'} />
           <Field label="Pax" value={booking.pax ?? '—'} />
           <Field label="Service Hours" value={booking.service_hours} />
+          {booking.menu_package && <Field label="Menu Package" value={booking.menu_package} />}
           <Field label="Client Has Lechon" value={booking.lechon_chopping ? 'Yes' : 'No'} />
           {KIDS_EVENT_TYPES.includes(booking.event_type) && (
             <>
@@ -113,6 +117,30 @@ export default function BookingDetailContent({ bookingId, variant = 'page', onCl
         {booking.lechon_chopping && (
           <div className="mt-4 pt-4 border-t border-gold/10">
             <p className="text-sm text-wine font-medium">{LECHON_NOTE}</p>
+          </div>
+        )}
+        {quote && (
+          <div className="mt-4 pt-4 border-t border-gold/10">
+            <p className="text-text-muted text-sm mb-1">Price Breakdown (estimate)</p>
+            <dl className="text-sm text-text-dark space-y-0.5">
+              <div className="flex justify-between">
+                <dt>{booking.menu_package}</dt>
+                <dd>{formatCurrency(quote.packagePrice)}</dd>
+              </div>
+              {quote.lechonFee > 0 && (
+                <div className="flex justify-between">
+                  <dt>Lechon chopping fee</dt>
+                  <dd>{formatCurrency(quote.lechonFee)}</dd>
+                </div>
+              )}
+              <div className="flex justify-between font-semibold text-wine border-t border-gold/10 mt-1 pt-1">
+                <dt>Estimated Total</dt>
+                <dd>{formatCurrency(quote.total)}</dd>
+              </div>
+            </dl>
+            <p className="text-xs text-text-muted mt-1">
+              Placeholder pricing — confirm against the quotation app before finalizing the contract amount.
+            </p>
           </div>
         )}
         {KIDS_EVENT_TYPES.includes(booking.event_type) && booking.kids_menu?.length > 0 && (

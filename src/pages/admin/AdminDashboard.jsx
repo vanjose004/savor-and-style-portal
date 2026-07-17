@@ -21,6 +21,7 @@ import StatusBadge from '../../components/ui/StatusBadge'
 import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { formatCurrency, formatDate, formatTime, formatDateTime } from '../../lib/utils'
+import { calculateBookingQuote } from '../../lib/bookings'
 
 const REQUEST_TYPE_LABELS = {
   menu_suggestion: 'Menu suggestion',
@@ -36,6 +37,23 @@ const REQUEST_TYPE_LABELS = {
 // this page always renders inside AdminLayout's .admin-shell scope.
 const FESTIVE_CARD_ACCENT =
   "relative overflow-hidden before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-gradient-to-r before:from-wine before:via-gold before:to-success"
+
+// Short "(Package 2, +Lechon, +Cake Table — est. ₱40,300)" suffix for the
+// Recent Activity feed, so a booking submitted through the public /book
+// form shows its selections and estimated price at a glance without
+// opening the booking detail page. Same MENU_PACKAGE_PRICES table as the
+// booking detail breakdown, via calculateBookingQuote.
+function describeSelections(booking) {
+  const parts = []
+  if (booking.menu_package) parts.push(booking.menu_package)
+  if (booking.lechon_chopping) parts.push('+Lechon')
+  if ((booking.freebies ?? []).some((f) => f.name === 'Cake Table')) parts.push('+Cake Table')
+
+  const quote = calculateBookingQuote(booking)
+  if (quote) parts.push(`est. ${formatCurrency(quote.total)}`)
+
+  return parts.length > 0 ? ` (${parts.join(', ')})` : ''
+}
 
 function toDateString(date) {
   return date.toISOString().slice(0, 10)
@@ -57,8 +75,11 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     const channel = supabase
-      .channel('admin-dashboard-change-requests')
+      .channel('admin-dashboard-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'change_requests' }, () =>
+        setRefreshKey((key) => key + 1)
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () =>
         setRefreshKey((key) => key + 1)
       )
       .subscribe()
@@ -116,7 +137,7 @@ export default function AdminDashboard() {
         supabase.from('booking_menu_items').select('*', { count: 'exact', head: true }).eq('status', 'suggested'),
         supabase
           .from('bookings')
-          .select('id, booking_code, event_type, created_at, clients(name)')
+          .select('id, booking_code, event_type, created_at, menu_package, lechon_chopping, freebies, clients(name)')
           .order('created_at', { ascending: false })
           .limit(5),
         supabase
@@ -183,7 +204,7 @@ export default function AdminDashboard() {
           id: `booking-${b.id}`,
           date: b.created_at,
           icon: CalendarPlus,
-          text: `New booking ${b.booking_code} — ${b.event_type} for ${b.clients?.name ?? 'a client'}`,
+          text: `New booking ${b.booking_code} — ${b.event_type} for ${b.clients?.name ?? 'a client'}${describeSelections(b)}`,
           link: `/admin/bookings/${b.id}`,
         })),
         ...(recentPaymentsRes.data ?? []).map((p) => ({

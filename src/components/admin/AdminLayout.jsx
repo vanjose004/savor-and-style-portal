@@ -22,6 +22,7 @@ import { cn } from '../../lib/utils'
 import Logo from '../ui/Logo'
 import NotificationBell from './NotificationBell'
 import BookingDetailDrawer from './booking-detail/BookingDetailDrawer'
+import ChristmasBackground from './ChristmasBackground'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -61,6 +62,7 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-shell min-h-screen flex bg-cream">
+      <ChristmasBackground />
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-40 w-64 bg-wine text-warm-white flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static',
