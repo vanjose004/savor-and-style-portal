@@ -14,5 +14,6 @@ jobs:
     steps:
       - name: Call attendance-reminders endpoint
         run: |
-          curl -sf -X POST https://savor-and-style-portal.vercel.app/api/cron/attendance-reminders \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          curl -sS --fail-with-body -X POST https://savor-and-style-portal.vercel.app/api/cron/attendance-reminders \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -w "\nHTTP Status: %{http_code}\n"
