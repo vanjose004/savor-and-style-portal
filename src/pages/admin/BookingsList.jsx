@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useOutletContext } from 'react-router-dom'
+import { Link, useNavigate, useOutletContext } from 'react-router-dom'
 import { Plus, Pencil, Trash2, CalendarDays, MapPin } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
@@ -46,7 +46,8 @@ const TABS = [
 
 export default function BookingsList() {
   const { showToast } = useToast()
-  const { openBookingDrawer, bookingsRefreshKey } = useOutletContext() ?? {}
+  const navigate = useNavigate()
+  const { bookingsRefreshKey } = useOutletContext() ?? {}
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab] = useState('upcoming')
@@ -232,7 +233,7 @@ export default function BookingsList() {
               <div
                 key={booking.id}
                 className="flex items-center gap-3 px-4 py-3 hover:bg-cream/50 transition-colors cursor-pointer"
-                onClick={() => openBookingDrawer?.(booking.id)}
+                onClick={() => navigate(`/admin/bookings/${booking.id}`)}
               >
                 <Badge color={countdown.color} className="shrink-0">
                   {formatShortDate(booking.event_date)} • {countdown.label}
@@ -266,7 +267,7 @@ export default function BookingsList() {
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <Button variant="secondary" size="sm" onClick={() => openBookingDrawer?.(booking.id)}>
+                  <Button as={Link} to={`/admin/bookings/${booking.id}`} variant="secondary" size="sm">
                     View
                   </Button>
                   <Button

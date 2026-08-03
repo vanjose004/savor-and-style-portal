@@ -87,7 +87,7 @@ export default function HomeCheckin() {
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <SearchableSelect label="Pangalan Mo" options={staffList} value={staffId} onChange={setStaffId} />
-          <Button type="submit" className="w-full" disabled={submitting || loading}>
+          <Button type="submit" className="w-full" disabled={submitting || loading || !staffId}>
             {submitting ? 'Nagla-log in…' : 'Log In'}
           </Button>
         </form>

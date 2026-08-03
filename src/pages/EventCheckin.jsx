@@ -139,7 +139,7 @@ export default function EventCheckin() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <SearchableSelect label="Pangalan Mo" options={staffList} value={staffId} onChange={setStaffId} />
-          <Button type="submit" className="w-full" disabled={submitting}>
+          <Button type="submit" className="w-full" disabled={submitting || !staffId}>
             {submitting ? 'Nagla-log in…' : 'Log In'}
           </Button>
         </form>
