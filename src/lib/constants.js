@@ -323,10 +323,9 @@ export const SOFT_RESERVE_PACKAGE_OPTIONS = ['Promo', 'Bronze', 'Silver', 'Gold'
 
 // These are the tiers shown on the public marketing page (distinct from the
 // internal MENU_PACKAGE_PRICES "Package 1-4" labels used when an admin quotes
-// an actual booking). `price`/`guests` are the "starting at" headline shown
-// on the landing page card; `tiers`/`overagePerHead` hold the full pax-based
-// pricing for reference (e.g. admin tools, chatbot) even though the card
-// itself only renders the headline.
+// an actual booking). `price`/`guests` are a fallback headline (used only if
+// `tiers` is ever empty); the landing page card renders the full `tiers`
+// table plus the `overagePerHead` rate for 100+ pax.
 export const SOFT_RESERVE_PACKAGES = [
   {
     name: 'Promo',

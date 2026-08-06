@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react'
 import Reveal from './Reveal'
-import { SOFT_RESERVE_PACKAGES } from '../../lib/constants'
+import { SOFT_RESERVE_PACKAGES, peso } from '../../lib/constants'
 import { useSoftReserve } from '../../hooks/useSoftReserve'
 
 export default function Packages() {
@@ -34,10 +34,43 @@ export default function Packages() {
                 <h3 className={`font-heading font-bold text-2xl ${pkg.highlight ? 'text-white' : 'text-wine'}`}>
                   {pkg.name}
                 </h3>
-                <p className={`mt-2 font-heading font-bold text-3xl ${pkg.highlight ? 'text-gold' : 'text-wine'}`}>
-                  {pkg.price}
-                </p>
-                <p className={`text-sm ${pkg.highlight ? 'text-cream/80' : 'text-text-muted'}`}>{pkg.guests}</p>
+
+                <div
+                  className={`mt-4 rounded-lg overflow-hidden border ${
+                    pkg.highlight ? 'border-white/20' : 'border-gold/20'
+                  }`}
+                >
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {pkg.tiers.map((tier, i) => (
+                        <tr
+                          key={tier.pax}
+                          className={
+                            i % 2 === 1 ? (pkg.highlight ? 'bg-white/5' : 'bg-cream/60') : undefined
+                          }
+                        >
+                          <td className={`px-3 py-1.5 ${pkg.highlight ? 'text-cream/80' : 'text-text-muted'}`}>
+                            {tier.pax} pax
+                          </td>
+                          <td
+                            className={`px-3 py-1.5 text-right font-semibold ${
+                              pkg.highlight ? 'text-gold' : 'text-wine'
+                            }`}
+                          >
+                            {peso(tier.price)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p
+                    className={`px-3 py-1.5 text-xs border-t ${
+                      pkg.highlight ? 'border-white/20 text-cream/70' : 'border-gold/20 text-text-muted'
+                    }`}
+                  >
+                    100+ pax: +{peso(pkg.overagePerHead)}/head
+                  </p>
+                </div>
 
                 <ul className="mt-5 space-y-2.5 flex-grow">
                   {pkg.features.map((feature) => (
