@@ -339,7 +339,7 @@ export const SOFT_RESERVE_PACKAGES = [
       { pax: '200', price: 60000 },
     ],
     overagePerHead: 300,
-    features: ['3 main dishes', 'Unlimited rice & iced tea', 'Basic buffet setup', 'Waiter service'],
+    features: ['3 main dishes', 'Iced tea', 'Basic buffet setup', 'Waiter service'],
   },
   {
     name: 'Bronze',
