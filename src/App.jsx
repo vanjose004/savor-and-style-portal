@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
@@ -20,6 +21,7 @@ import MenuManager from './pages/admin/MenuManager'
 import ClientsList from './pages/admin/ClientsList'
 import ClientDetail from './pages/admin/ClientDetail'
 import StaffManagement from './pages/admin/StaffManagement'
+import SoftReserves from './pages/admin/SoftReserves'
 import Attendance from './pages/admin/Attendance'
 import AdminPayroll from './pages/admin/AdminPayroll'
 import AdminPayrollDetail from './pages/admin/AdminPayrollDetail'
@@ -51,6 +53,10 @@ import BookingRequest from './pages/BookingRequest'
 import HomeCheckin from './pages/HomeCheckin'
 import EventCheckin from './pages/EventCheckin'
 
+// Lazy-loaded: pulls in framer-motion and the gallery/hero images, none of
+// which any other role (admin/staff/chef) needs in their initial bundle.
+const Landing = lazy(() => import('./pages/Landing'))
+
 function App() {
   return (
     <AuthProvider>
@@ -59,6 +65,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/book" element={<BookingRequest />} />
+            <Route
+              path="/landing"
+              element={
+                <Suspense fallback={null}>
+                  <Landing />
+                </Suspense>
+              }
+            />
 
             <Route path="/admin/login" element={<AdminLogin />} />
 
@@ -74,6 +88,7 @@ function App() {
                 <Route path="/admin/menu" element={<MenuManager />} />
                 <Route path="/admin/clients" element={<ClientsList />} />
                 <Route path="/admin/clients/:id" element={<ClientDetail />} />
+                <Route path="/admin/soft-reserves" element={<SoftReserves />} />
                 <Route path="/admin/staff" element={<StaffManagement />} />
                 <Route path="/admin/attendance" element={<Attendance />} />
                 <Route path="/admin/payroll" element={<AdminPayroll />} />

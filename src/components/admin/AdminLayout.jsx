@@ -16,6 +16,7 @@ import {
   PiggyBank,
   Snowflake,
   QrCode,
+  Inbox,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
@@ -31,6 +32,7 @@ const NAV_ITEMS = [
   { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
   { to: '/admin/upcoming-menus', label: 'Event Menu & Costing', icon: ShoppingCart },
   { to: '/admin/clients', label: 'Clients', icon: Users },
+  { to: '/admin/soft-reserves', label: 'Soft Reserves', icon: Inbox },
   { to: '/admin/staff', label: 'Staff', icon: ChefHat },
   { to: '/admin/attendance', label: 'Attendance', icon: QrCode },
   { to: '/admin/payroll', label: 'Payroll', icon: Wallet },

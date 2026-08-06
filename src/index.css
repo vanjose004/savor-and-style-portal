@@ -18,6 +18,10 @@
   --font-body: "Inter", sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-body);
   background-color: var(--color-cream);
@@ -26,6 +30,14 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
+}
+
+/* Offsets in-page anchor scrolling (Navbar's #home/#events/etc. links) on
+   the /landing page for its fixed AnnouncementBar + Navbar header stack.
+   Only landing/*.jsx components render a <section id="...">, so this has
+   no effect elsewhere. */
+section[id] {
+  scroll-margin-top: 7rem;
 }
 
 /* ─────────────────────────────────────────────────────────────────────
