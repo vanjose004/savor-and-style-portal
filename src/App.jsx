@@ -22,6 +22,7 @@ import ClientsList from './pages/admin/ClientsList'
 import ClientDetail from './pages/admin/ClientDetail'
 import StaffManagement from './pages/admin/StaffManagement'
 import SoftReserves from './pages/admin/SoftReserves'
+import AdminGallery from './pages/admin/Gallery'
 import Attendance from './pages/admin/Attendance'
 import AdminPayroll from './pages/admin/AdminPayroll'
 import AdminPayrollDetail from './pages/admin/AdminPayrollDetail'
@@ -56,6 +57,7 @@ import EventCheckin from './pages/EventCheckin'
 // Lazy-loaded: pulls in framer-motion and the gallery/hero images, none of
 // which any other role (admin/staff/chef) needs in their initial bundle.
 const Landing = lazy(() => import('./pages/Landing'))
+const PublicGallery = lazy(() => import('./pages/Gallery'))
 
 function App() {
   return (
@@ -70,6 +72,14 @@ function App() {
               element={
                 <Suspense fallback={null}>
                   <Landing />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/gallery"
+              element={
+                <Suspense fallback={null}>
+                  <PublicGallery />
                 </Suspense>
               }
             />
@@ -89,6 +99,7 @@ function App() {
                 <Route path="/admin/clients" element={<ClientsList />} />
                 <Route path="/admin/clients/:id" element={<ClientDetail />} />
                 <Route path="/admin/soft-reserves" element={<SoftReserves />} />
+                <Route path="/admin/gallery" element={<AdminGallery />} />
                 <Route path="/admin/staff" element={<StaffManagement />} />
                 <Route path="/admin/attendance" element={<Attendance />} />
                 <Route path="/admin/payroll" element={<AdminPayroll />} />

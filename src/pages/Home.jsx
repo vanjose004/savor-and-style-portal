@@ -101,6 +101,10 @@ export default function Home() {
         </div>
 
         <div className="mt-8 flex items-center gap-4 text-xs tracking-widest uppercase">
+          <Link to="/gallery" className="text-white/50 hover:text-[#B8962E] transition-colors">
+            Gallery
+          </Link>
+          <span className="text-white/25">•</span>
           <Link to="/admin/login" className="text-white/50 hover:text-[#B8962E] transition-colors">
             Admin Login
           </Link>

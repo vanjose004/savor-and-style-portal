@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
 import { SOFT_RESERVE_CTA_LABEL } from '../../lib/constants'
 import { useSoftReserve } from '../../hooks/useSoftReserve'
 import Logo from '../ui/Logo'
 
+// `href` starting with "#" scrolls to an in-page section; anything else is
+// a real route, rendered as a <Link> instead (Gallery now has its own
+// standalone page with albums + lightbox, richer than the in-page preview).
 const NAV_LINKS = [
   { label: 'Home', href: '#home' },
   { label: 'Events', href: '#events' },
   { label: 'Packages', href: '#packages' },
-  { label: 'Gallery', href: '#gallery' },
+  { label: 'Gallery', href: '/gallery' },
   { label: 'Testimonials', href: '#testimonials' },
   { label: 'Contact', href: '#contact' },
 ]
@@ -41,15 +45,25 @@ export default function Navbar() {
         </a>
 
         <div className="hidden md:flex items-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="text-white/90 hover:text-gold transition-colors font-medium"
-            >
-              {link.label}
-            </a>
-          ))}
+          {NAV_LINKS.map((link) =>
+            link.href.startsWith('#') ? (
+              <a
+                key={link.href}
+                href={link.href}
+                className="text-white/90 hover:text-gold transition-colors font-medium"
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link
+                key={link.href}
+                to={link.href}
+                className="text-white/90 hover:text-gold transition-colors font-medium"
+              >
+                {link.label}
+              </Link>
+            )
+          )}
         </div>
 
         <div className="hidden md:block">
@@ -82,16 +96,27 @@ export default function Navbar() {
             className="md:hidden bg-wine overflow-hidden"
           >
             <div className="flex flex-col px-6 pb-6 pt-2 gap-4">
-              {NAV_LINKS.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="text-white/90 hover:text-gold transition-colors font-medium py-1"
-                >
-                  {link.label}
-                </a>
-              ))}
+              {NAV_LINKS.map((link) =>
+                link.href.startsWith('#') ? (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="text-white/90 hover:text-gold transition-colors font-medium py-1"
+                  >
+                    {link.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="text-white/90 hover:text-gold transition-colors font-medium py-1"
+                  >
+                    {link.label}
+                  </Link>
+                )
+              )}
               <button
                 type="button"
                 onClick={() => {

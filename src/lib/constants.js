@@ -485,6 +485,21 @@ export const SOFT_RESERVE_STATUS_LABELS = {
   expired: 'Expired',
 }
 
+// Matches the `gallery_photos.category` check constraint in migration 34 —
+// keep in sync if categories ever change.
+export const GALLERY_CATEGORIES = [
+  'Wedding',
+  'Debut',
+  'Kiddie Party',
+  'Christening / Binyag',
+  'Birthday',
+  'Corporate Event',
+  'Christmas Party',
+  'House Blessing',
+  'Buffet / Dining Setup',
+  'Others',
+]
+
 export const SOFT_RESERVE_STATUS_COLORS = {
   new: 'warning',
   contacted: 'blue',

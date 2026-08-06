@@ -17,6 +17,7 @@ import {
   Snowflake,
   QrCode,
   Inbox,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { to: '/admin/upcoming-menus', label: 'Event Menu & Costing', icon: ShoppingCart },
   { to: '/admin/clients', label: 'Clients', icon: Users },
   { to: '/admin/soft-reserves', label: 'Soft Reserves', icon: Inbox },
+  { to: '/admin/gallery', label: 'Gallery', icon: ImageIcon },
   { to: '/admin/staff', label: 'Staff', icon: ChefHat },
   { to: '/admin/attendance', label: 'Attendance', icon: QrCode },
   { to: '/admin/payroll', label: 'Payroll', icon: Wallet },
