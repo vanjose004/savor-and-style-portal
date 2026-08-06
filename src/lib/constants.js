@@ -1,11 +1,15 @@
+import { formatCurrency } from './utils'
+
 export const BUSINESS = {
   name: 'Savor and Style Catering Services',
   legalName: 'V&A Estrella Catering Services',
   address: '1185 Tabing Ilog, Sta. Clara, Santa Maria, Bulacan',
   displayLocation: 'Sta. Maria, Bulacan | Serving Metro Manila & Nearby Areas',
   phone: '0948-599-2866',
+  phoneTel: 'tel:+639485992866',
   facebook: 'Savor and Style Catering Services',
   facebookUrl: 'https://www.facebook.com/EstrellasCateringServices/',
+  messengerUrl: 'https://m.me/EstrellasCateringServices',
   // Hardcoded (not window.location.origin) specifically for QR codes that
   // get printed/screenshotted and live indefinitely — e.g. the permanent
   // home-base attendance QR. Generating one from a preview-deploy domain
@@ -288,4 +292,159 @@ export const PAYABLE_STATUS_COLORS = {
   unpaid: 'danger',
   partial: 'warning',
   paid: 'success',
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Public landing page (/landing) — Soft Reserve lead-capture funnel
+// ─────────────────────────────────────────────────────────────────────────
+
+// Whole-peso amounts only (every fee below is a round number) — drops the
+// ".00" that Intl's currency formatter always appends.
+export const peso = (amount) => formatCurrency(amount).replace(/\.00$/, '')
+
+export const SOFT_RESERVE_FEE = 500
+export const SOFT_RESERVE_CTA_LABEL = `Soft Reserve — ${peso(SOFT_RESERVE_FEE)} lang`
+export const FOOD_TASTING_FEE_NON_RESERVED = 2000
+
+export const ANNOUNCEMENT_TEXT =
+  '🎉 July-August Promo — Mag-book within 3 days para ma-lock ang promo price!'
+
+export const PAYMENT_INSTRUCTIONS = {
+  gcashNumber: '0948-599-2866',
+  gcashName: 'Van Joseph Estrella',
+  bpiNumber: '4739488397',
+}
+
+// Reuses EVENT_TYPES above so a soft reserve's event type always matches the
+// same taxonomy as a real booking's, in case it later converts into one.
+export const SOFT_RESERVE_EVENT_TYPES = EVENT_TYPES
+
+export const SOFT_RESERVE_PACKAGE_OPTIONS = ['Promo', 'Bronze', 'Silver', 'Gold', 'Not sure yet']
+
+// These are the tiers shown on the public marketing page (distinct from the
+// internal MENU_PACKAGE_PRICES "Package 1-4" labels used when an admin quotes
+// an actual booking). `price`/`guests` are the "starting at" headline shown
+// on the landing page card; `tiers`/`overagePerHead` hold the full pax-based
+// pricing for reference (e.g. admin tools, chatbot) even though the card
+// itself only renders the headline.
+export const SOFT_RESERVE_PACKAGES = [
+  {
+    name: 'Promo',
+    price: '₱20,000',
+    guests: 'Starting at 50 pax',
+    tiers: [
+      { pax: '50', price: 20000 },
+      { pax: '70-75', price: 25000 },
+      { pax: '100', price: 30000 },
+      { pax: '150', price: 45000 },
+      { pax: '200', price: 60000 },
+    ],
+    overagePerHead: 300,
+    features: ['3 main dishes', 'Unlimited rice & iced tea', 'Basic buffet setup', 'Waiter service'],
+  },
+  {
+    name: 'Bronze',
+    price: '₱25,000',
+    guests: 'Starting at 50 pax',
+    tiers: [
+      { pax: '50', price: 25000 },
+      { pax: '60', price: 28500 },
+      { pax: '70', price: 32000 },
+      { pax: '80', price: 36000 },
+      { pax: '90', price: 38000 },
+      { pax: '100', price: 40000 },
+    ],
+    overagePerHead: 400,
+    features: ['4 main dishes + dessert', 'Complete tables, chairs & flatware', 'Waiter service', 'Water & ice'],
+  },
+  {
+    name: 'Silver',
+    price: '₱28,000',
+    guests: 'Starting at 50 pax',
+    highlight: true,
+    tiers: [
+      { pax: '50', price: 28000 },
+      { pax: '60', price: 32000 },
+      { pax: '70', price: 36000 },
+      { pax: '80', price: 40500 },
+      { pax: '90', price: 42750 },
+      { pax: '100', price: 45000 },
+    ],
+    overagePerHead: 450,
+    features: [
+      '5 main dishes + dessert + appetizer',
+      'Complete tables, chairs & flatware',
+      'Styled buffet backdrop',
+      'Waiter service, water & ice',
+    ],
+  },
+  {
+    name: 'Gold',
+    price: '₱32,000',
+    guests: 'Starting at 50 pax',
+    tiers: [
+      { pax: '50', price: 32000 },
+      { pax: '60', price: 36000 },
+      { pax: '70', price: 40000 },
+      { pax: '80', price: 45000 },
+      { pax: '90', price: 47500 },
+      { pax: '100', price: 50000 },
+    ],
+    overagePerHead: 500,
+    features: [
+      '6 main dishes + dessert + appetizer + pasta',
+      'Complete tables, chairs & flatware',
+      'Styled buffet backdrop',
+      'Extra servers, water & ice',
+    ],
+  },
+]
+
+// Step 3 reuses RESERVATION_FEE (above) — it's the same ₱5,000 fee already
+// charged when an admin creates a booking, so this stays in sync with that
+// automatically instead of hardcoding a second copy of the number.
+export const SOFT_RESERVE_HOW_IT_WORKS_STEPS = [
+  {
+    title: `Soft Reserve — ${peso(SOFT_RESERVE_FEE)}`,
+    description: 'Secure your preferred date with a small reservation fee.',
+  },
+  {
+    title: "We'll Reach Out Within 24hrs",
+    description: 'Aabutan ka namin within 24 hours para i-confirm ang details ng event mo.',
+  },
+  {
+    title: `Contract Signing — ${peso(RESERVATION_FEE)}`,
+    description: 'Lock in your package with a signed contract and down payment.',
+  },
+  {
+    title: 'Event Day',
+    description: 'Sit back and enjoy — we handle everything on your special day.',
+  },
+]
+
+export const CLIENT_PORTAL_FEATURES = [
+  'Check your booking status anytime',
+  'Download your contract',
+  'Track your payment status',
+  'Submit change requests',
+]
+
+// Set to a real YouTube video ID to replace the placeholder card in the
+// landing page's video section.
+export const YOUTUBE_VIDEO_ID = ''
+
+export const SOFT_RESERVE_STATUSES = ['new', 'contacted', 'converted', 'expired']
+
+export const SOFT_RESERVE_STATUS_LABELS = {
+  new: 'New',
+  contacted: 'Contacted',
+  converted: 'Converted',
+  expired: 'Expired',
+}
+
+export const SOFT_RESERVE_STATUS_COLORS = {
+  new: 'warning',
+  contacted: 'blue',
+  converted: 'success',
+  expired: 'danger',
 }
