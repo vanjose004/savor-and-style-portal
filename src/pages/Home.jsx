@@ -61,36 +61,54 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-cream px-4 text-center">
-      <Logo className="w-20 h-20 text-wine mb-4" />
-      <h1 className="text-4xl font-bold text-wine mb-2">{BUSINESS.name}</h1>
-      <p className="text-text-muted mb-8">{BUSINESS.displayLocation}</p>
-      <div className="flex flex-wrap items-center justify-center gap-4">
-        <Link
-          to="/book"
-          className="px-6 py-3 rounded-lg bg-wine text-warm-white font-medium hover:bg-wine-dark transition-colors"
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background image + overlay */}
+      <div className="absolute inset-0">
+        <img src="/hero.jpg" alt="" className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-[#2a0808]/70 to-black/85" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center px-6 py-24 text-center max-w-xl mx-auto">
+        <div className="rounded-full overflow-hidden ring-4 ring-[#B8962E] shadow-2xl w-28 h-28 sm:w-32 sm:h-32">
+          <Logo className="w-full h-full" />
+        </div>
+
+        <p
+          className="mt-6 font-heading italic text-xl sm:text-2xl"
+          style={{ color: '#B8962E' }}
         >
-          Book Now
-        </Link>
-        <button
-          type="button"
-          onClick={openModal}
-          className="px-6 py-3 rounded-lg border border-gold text-wine font-medium hover:bg-warm-white transition-colors"
-        >
-          View My Booking
-        </button>
-        <Link
-          to="/admin/login"
-          className="px-6 py-3 rounded-lg border border-gold text-wine font-medium hover:bg-warm-white transition-colors"
-        >
-          Admin Login
-        </Link>
-        <Link
-          to="/staff/login"
-          className="px-6 py-3 rounded-lg border border-gold text-wine font-medium hover:bg-warm-white transition-colors"
-        >
-          Staff Login
-        </Link>
+          Masarap. Maayos. Mapagkakatiwalaan.
+        </p>
+
+        <p className="mt-2 text-sm text-white/70 tracking-wide">{BUSINESS.displayLocation}</p>
+
+        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
+          <Link
+            to="/book"
+            className="w-full sm:w-auto text-center font-semibold px-9 py-3.5 rounded-full shadow-lg transition-all hover:scale-[1.03]"
+            style={{ backgroundColor: '#B8962E', color: '#2a1a00' }}
+          >
+            Book Now
+          </Link>
+          <button
+            type="button"
+            onClick={openModal}
+            className="w-full sm:w-auto text-center font-semibold px-9 py-3.5 rounded-full border-2 border-white/70 text-white transition-all hover:bg-white/10 hover:border-white"
+          >
+            View My Booking
+          </button>
+        </div>
+
+        <div className="mt-8 flex items-center gap-4 text-xs tracking-widest uppercase">
+          <Link to="/admin/login" className="text-white/50 hover:text-[#B8962E] transition-colors">
+            Admin Login
+          </Link>
+          <span className="text-white/25">•</span>
+          <Link to="/staff/login" className="text-white/50 hover:text-[#B8962E] transition-colors">
+            Staff Login
+          </Link>
+        </div>
       </div>
 
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="View My Booking">
