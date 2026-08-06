@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { Check, Gift } from 'lucide-react'
 import Reveal from './Reveal'
 import { SOFT_RESERVE_PACKAGES, peso } from '../../lib/constants'
 import { useSoftReserve } from '../../hooks/useSoftReserve'
@@ -73,12 +73,20 @@ export default function Packages() {
                 </div>
 
                 <ul className="mt-5 space-y-2.5 flex-grow">
-                  {pkg.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm">
-                      <Check size={16} className={`mt-0.5 flex-shrink-0 ${pkg.highlight ? 'text-gold' : 'text-wine'}`} />
-                      <span className={pkg.highlight ? 'text-white/90' : 'text-text-dark'}>{feature}</span>
-                    </li>
-                  ))}
+                  {pkg.features.map((feature) => {
+                    const Icon = feature.type === 'gift' ? Gift : Check
+                    return (
+                      <li key={feature.label} className="flex items-start gap-2 text-sm">
+                        <Icon
+                          size={16}
+                          className={`mt-0.5 flex-shrink-0 ${
+                            feature.type === 'gift' ? 'text-gold' : pkg.highlight ? 'text-gold' : 'text-wine'
+                          }`}
+                        />
+                        <span className={pkg.highlight ? 'text-white/90' : 'text-text-dark'}>{feature.label}</span>
+                      </li>
+                    )
+                  })}
                 </ul>
 
                 <button
