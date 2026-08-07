@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
 import { BUSINESS } from '../lib/constants'
@@ -7,6 +7,11 @@ import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Logo from '../components/ui/Logo'
+
+// Lazy-loaded so the chat widget's code doesn't add weight to this page's
+// initial bundle — Home is rendered directly (not behind its own lazy
+// route) unlike /landing.
+const ChatWidget = lazy(() => import('../components/chat/ChatWidget'))
 
 const ACCESS_TOKEN_PATTERN = /^[0-9a-f]{32}$/i
 
@@ -134,6 +139,10 @@ export default function Home() {
           </Button>
         </form>
       </Modal>
+
+      <Suspense fallback={null}>
+        <ChatWidget />
+      </Suspense>
     </div>
   )
 }

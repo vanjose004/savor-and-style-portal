@@ -18,6 +18,7 @@ import Footer from '../components/landing/Footer'
 import FloatingCTA from '../components/landing/FloatingCTA'
 import FloatingMessenger from '../components/landing/FloatingMessenger'
 import SoftReserveModal from '../components/landing/SoftReserveModal'
+import ChatWidget from '../components/chat/ChatWidget'
 
 export default function Landing() {
   return (
@@ -45,6 +46,7 @@ export default function Landing() {
       <FloatingCTA />
       <FloatingMessenger />
       <SoftReserveModal />
+      <ChatWidget />
     </SoftReserveProvider>
   )
 }
