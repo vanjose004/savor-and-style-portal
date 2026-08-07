@@ -19,6 +19,7 @@ import {
   Inbox,
   Image as ImageIcon,
   MessageCircle,
+  MessageSquare,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
@@ -43,6 +44,7 @@ const NAV_ITEMS = [
   { to: '/admin/accounting', label: 'Accounting', icon: PiggyBank },
   { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
   { to: '/admin/chatbot-settings', label: 'Chatbot Settings', icon: MessageCircle },
+  { to: '/admin/messenger-bot', label: 'Messenger Bot', icon: MessageSquare },
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ]
 

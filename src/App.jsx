@@ -24,6 +24,7 @@ import StaffManagement from './pages/admin/StaffManagement'
 import SoftReserves from './pages/admin/SoftReserves'
 import AdminGallery from './pages/admin/Gallery'
 import ChatbotSettings from './pages/admin/ChatbotSettings'
+import MessengerBot from './pages/admin/MessengerBot'
 import Attendance from './pages/admin/Attendance'
 import AdminPayroll from './pages/admin/AdminPayroll'
 import AdminPayrollDetail from './pages/admin/AdminPayrollDetail'
@@ -102,6 +103,7 @@ function App() {
                 <Route path="/admin/soft-reserves" element={<SoftReserves />} />
                 <Route path="/admin/gallery" element={<AdminGallery />} />
                 <Route path="/admin/chatbot-settings" element={<ChatbotSettings />} />
+                <Route path="/admin/messenger-bot" element={<MessengerBot />} />
                 <Route path="/admin/staff" element={<StaffManagement />} />
                 <Route path="/admin/attendance" element={<Attendance />} />
                 <Route path="/admin/payroll" element={<AdminPayroll />} />
