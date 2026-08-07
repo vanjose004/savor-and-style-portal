@@ -1,7 +1,7 @@
 import { buildSystemPrompt } from './_lib/chatKnowledge.js'
 
-const ANTHROPIC_API_URL = 'https://api.anthropic.com/v1/messages'
-const MODEL = 'claude-sonnet-5'
+const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
+const MODEL = 'gpt-4o-mini'
 const MAX_HISTORY_MESSAGES = 20
 
 // Public endpoint (no auth) — called directly from the floating chat widget
@@ -15,9 +15,9 @@ export default async function handler(req, res) {
     return
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
-    console.error('[chat] ANTHROPIC_API_KEY is not configured')
+    console.error('[chat] OPENAI_API_KEY is not configured')
     res.status(500).json({ error: 'Chat is not configured yet.' })
     return
   }
@@ -36,30 +36,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(ANTHROPIC_API_URL, {
+    const response = await fetch(OPENAI_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: MODEL,
-        max_tokens: 500,
-        system: buildSystemPrompt(),
-        messages,
+        messages: [{ role: 'system', content: buildSystemPrompt() }, ...messages],
       }),
     })
 
     const data = await response.json()
 
     if (!response.ok) {
-      console.error('[chat] Anthropic API error:', data)
+      console.error('[chat] OpenAI API error:', data)
       res.status(502).json({ error: 'Chat service is temporarily unavailable.' })
       return
     }
 
-    const reply = data.content?.find((block) => block.type === 'text')?.text?.trim()
+    const reply = data.choices?.[0]?.message?.content?.trim()
     if (!reply) {
       res.status(502).json({ error: 'Chat service is temporarily unavailable.' })
       return
