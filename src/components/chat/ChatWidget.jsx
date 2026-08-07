@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MessageCircle, X, Send } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
 import { BUSINESS } from '../../lib/constants'
 import { cn } from '../../lib/utils'
 
@@ -7,29 +8,58 @@ const STORAGE_KEY = 'ss-chat-history'
 const MAROON = '#6B1A1A'
 const GOLD = '#B8962E'
 
-const GREETING = {
-  role: 'assistant',
-  content: `Kumusta! 👋 Ako si Stella, ang virtual assistant ng ${BUSINESS.name}. Tanong lang tungkol sa packages, pricing, soft reserve, o kahit ano about sa amin!`,
+const DEFAULT_SETTINGS = {
+  botName: 'Stella',
+  greetingMessage: `Kumusta! 👋 Ako si Stella, ang virtual assistant ng ${BUSINESS.name}. Tanong lang tungkol sa packages, pricing, soft reserve, o kahit ano about sa amin!`,
+  isEnabled: true,
 }
 
-function loadHistory() {
+function loadHistory(greeting) {
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY)
     const parsed = raw ? JSON.parse(raw) : null
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [GREETING]
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : [{ role: 'assistant', content: greeting }]
   } catch {
-    return [GREETING]
+    return [{ role: 'assistant', content: greeting }]
   }
 }
 
 export default function ChatWidget() {
+  const [settings, setSettings] = useState(null)
   const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState(loadHistory)
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const scrollRef = useRef(null)
 
   useEffect(() => {
+    let cancelled = false
+
+    async function loadSettings() {
+      const { data, error } = await supabase.rpc('get_chatbot_public_settings')
+      if (cancelled) return
+
+      const row = !error ? data?.[0] : null
+      const resolved = {
+        botName: row?.bot_name?.trim() || DEFAULT_SETTINGS.botName,
+        greetingMessage: row?.greeting_message?.trim() || DEFAULT_SETTINGS.greetingMessage,
+        // Fail open: if the row/RPC is missing (e.g. before the migration
+        // runs), don't hide a widget that would otherwise work fine.
+        isEnabled: row ? row.is_enabled !== false : true,
+      }
+
+      setSettings(resolved)
+      setMessages(loadHistory(resolved.greetingMessage))
+    }
+
+    loadSettings()
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (messages.length === 0) return
     try {
       sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages))
     } catch {
@@ -74,6 +104,8 @@ export default function ChatWidget() {
     }
   }
 
+  if (!settings || !settings.isEnabled) return null
+
   return (
     <>
       <button
@@ -94,7 +126,9 @@ export default function ChatWidget() {
           <div className="px-4 py-3 flex items-center gap-2 shrink-0" style={{ backgroundColor: MAROON }}>
             <span className="w-2.5 h-2.5 rounded-full bg-green-400 shrink-0" />
             <div className="min-w-0">
-              <p className="font-heading font-semibold text-sm text-white truncate">Stella · Savor and Style</p>
+              <p className="font-heading font-semibold text-sm text-white truncate">
+                {settings.botName} · Savor and Style
+              </p>
               <p className="text-xs text-white/70">Usually replies instantly</p>
             </div>
           </div>

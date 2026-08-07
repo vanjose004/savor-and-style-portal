@@ -1,8 +1,32 @@
+import { getSupabaseAdmin } from './_lib/supabaseAdmin.js'
 import { buildSystemPrompt } from './_lib/chatKnowledge.js'
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions'
-const MODEL = 'gpt-4o-mini'
+const DEFAULT_MODEL = 'gpt-4o-mini'
+const DEFAULT_MAX_TOKENS = 500
 const MAX_HISTORY_MESSAGES = 20
+
+async function loadSettings() {
+  const { data, error } = await getSupabaseAdmin()
+    .from('chatbot_settings')
+    .select('bot_name, system_prompt, is_enabled, model, max_tokens')
+    .eq('id', true)
+    .maybeSingle()
+
+  if (error) {
+    console.error('[chat] Failed to load chatbot_settings, using defaults:', error.message)
+  }
+
+  // Fail open with sane defaults — a missing/unreadable settings row
+  // shouldn't take the whole widget down.
+  return {
+    botName: data?.bot_name ?? 'Stella',
+    systemPrompt: data?.system_prompt ?? '',
+    isEnabled: data?.is_enabled ?? true,
+    model: data?.model || DEFAULT_MODEL,
+    maxTokens: data?.max_tokens || DEFAULT_MAX_TOKENS,
+  }
+}
 
 // Public endpoint (no auth) — called directly from the floating chat widget
 // on /landing and /. Worst case for abuse is wasted API spend, not a data
@@ -36,6 +60,13 @@ export default async function handler(req, res) {
   }
 
   try {
+    const settings = await loadSettings()
+
+    if (!settings.isEnabled) {
+      res.status(403).json({ error: 'Chat is currently disabled.' })
+      return
+    }
+
     const response = await fetch(OPENAI_API_URL, {
       method: 'POST',
       headers: {
@@ -43,8 +74,12 @@ export default async function handler(req, res) {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: 'system', content: buildSystemPrompt() }, ...messages],
+        model: settings.model,
+        max_tokens: settings.maxTokens,
+        messages: [
+          { role: 'system', content: buildSystemPrompt(settings) },
+          ...messages,
+        ],
       }),
     })
 
