@@ -107,18 +107,26 @@ async function handleIncomingMessage({ senderId, messageText, apiKey, settings }
 // are the actual gate, not this endpoint's own auth.
 export default async function handler(req, res) {
   if (req.method === 'GET') {
-    const url = new URL(req.url, 'http://localhost')
-    const mode = url.searchParams.get('hub.mode')
-    const token = url.searchParams.get('hub.verify_token')
-    const challenge = url.searchParams.get('hub.challenge')
+    // Prefer Vercel's auto-parsed req.query (matches the old Express bot's
+    // req.query['hub.mode'] semantics exactly); fall back to parsing
+    // req.url manually in case query ever comes back empty/undefined.
+    const query = req.query && Object.keys(req.query).length > 0
+      ? req.query
+      : Object.fromEntries(new URL(req.url, 'http://localhost').searchParams)
+
+    const mode = query['hub.mode']
+    const token = query['hub.verify_token']
+    const challenge = query['hub.challenge']
     const expected = process.env.FACEBOOK_VERIFY_TOKEN
 
+    console.log('[facebook-webhook] GET verify — full query:', JSON.stringify(query))
     console.log('[facebook-webhook] GET verify — mode:', mode)
     console.log('[facebook-webhook] GET verify — received hub.verify_token:', JSON.stringify(token))
     console.log('[facebook-webhook] GET verify — expected FACEBOOK_VERIFY_TOKEN:', JSON.stringify(expected))
     console.log('[facebook-webhook] GET verify — tokens match:', token === expected)
 
     if (mode === 'subscribe' && expected && token === expected) {
+      res.setHeader('Content-Type', 'text/plain')
       res.status(200).send(challenge)
     } else {
       res.status(403).send('Forbidden')
