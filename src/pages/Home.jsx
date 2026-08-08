@@ -7,6 +7,7 @@ import Modal from '../components/ui/Modal'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import Logo from '../components/ui/Logo'
+import { DEMO_BOOKING_CODE } from '../lib/demoBooking'
 
 // Lazy-loaded so the chat widget's code doesn't add weight to this page's
 // initial bundle — Home is rendered directly (not behind its own lazy
@@ -40,6 +41,11 @@ export default function Home() {
     e.preventDefault()
     if (!value.trim()) {
       setError('Please enter your booking code or access link.')
+      return
+    }
+
+    if (value.trim().toUpperCase() === DEMO_BOOKING_CODE) {
+      navigate(`/booking/${DEMO_BOOKING_CODE}`)
       return
     }
 

@@ -1,9 +1,19 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
+import { Sparkles } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import Spinner from '../components/ui/Spinner'
 import Logo from '../components/ui/Logo'
 import { BUSINESS } from '../lib/constants'
+import {
+  DEMO_BOOKING_CODE,
+  DEMO_BOOKING,
+  DEMO_PACKAGE_NAME,
+  DEMO_MENU_ITEMS,
+  DEMO_PAID,
+  DEMO_BALANCE,
+  DEMO_TOTAL_AMOUNT,
+} from '../lib/demoBooking'
 import EventSummaryCard from '../components/client/EventSummaryCard'
 import DefaultInclusionsCard from '../components/client/DefaultInclusionsCard'
 import KidsMenuCard from '../components/client/KidsMenuCard'
@@ -15,18 +25,28 @@ import ChangeRequestCard from '../components/client/ChangeRequestCard'
 import ContractStatusCard from '../components/client/ContractStatusCard'
 import DocumentsCard from '../components/client/DocumentsCard'
 import ContactCard from '../components/client/ContactCard'
+import DemoMenuCard from '../components/client/DemoMenuCard'
+import DemoPaymentCard from '../components/client/DemoPaymentCard'
 
 export default function ClientPortal() {
   const { access_token: accessToken } = useParams()
   const [booking, setBooking] = useState(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
+  const isDemo = accessToken?.trim().toUpperCase() === DEMO_BOOKING_CODE
 
   useEffect(() => {
     let cancelled = false
 
     async function load() {
       setLoading(true)
+
+      if (isDemo) {
+        setBooking(DEMO_BOOKING)
+        setLoading(false)
+        return
+      }
+
       const { data, error } = await supabase.rpc('get_booking_by_token', { p_access_token: accessToken })
       if (cancelled) return
       if (error || !data || data.length === 0) {
@@ -42,7 +62,7 @@ export default function ClientPortal() {
     return () => {
       cancelled = true
     }
-  }, [accessToken])
+  }, [accessToken, isDemo])
 
   if (loading) {
     return (
@@ -66,6 +86,13 @@ export default function ClientPortal() {
 
   return (
     <div className="min-h-screen bg-cream">
+      {isDemo && (
+        <div className="bg-warning/15 text-warning border-b border-warning/30 px-4 py-2.5 text-center text-sm font-semibold flex items-center justify-center gap-2">
+          <Sparkles className="w-4 h-4" />
+          DEMO MODE — sample data for preview only, no real booking exists
+        </div>
+      )}
+
       <header className="bg-wine text-warm-white">
         <div className="max-w-3xl mx-auto px-4 py-6">
           <div className="flex items-center gap-2 text-warm-white/80 mb-2">
@@ -82,12 +109,21 @@ export default function ClientPortal() {
         <DefaultInclusionsCard />
         <KidsMenuCard booking={booking} />
         <FreebiesCard freebies={booking.freebies} />
-        <PaymentStatusCard accessToken={accessToken} booking={booking} />
-        <ClientMenuCard accessToken={accessToken} menuConfirmed={booking.menu_confirmed} />
-        <ClientUpdatesCard accessToken={accessToken} />
-        <ChangeRequestCard accessToken={accessToken} />
+        {isDemo ? (
+          <>
+            <DemoPaymentCard totalAmount={DEMO_TOTAL_AMOUNT} paid={DEMO_PAID} balance={DEMO_BALANCE} />
+            <DemoMenuCard packageName={DEMO_PACKAGE_NAME} pax={booking.pax} items={DEMO_MENU_ITEMS} />
+          </>
+        ) : (
+          <>
+            <PaymentStatusCard accessToken={accessToken} booking={booking} />
+            <ClientMenuCard accessToken={accessToken} menuConfirmed={booking.menu_confirmed} />
+            <ClientUpdatesCard accessToken={accessToken} />
+            <ChangeRequestCard accessToken={accessToken} />
+            <DocumentsCard accessToken={accessToken} booking={booking} />
+          </>
+        )}
         <ContractStatusCard booking={booking} />
-        <DocumentsCard accessToken={accessToken} booking={booking} />
         <ContactCard />
       </main>
     </div>
