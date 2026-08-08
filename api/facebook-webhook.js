@@ -111,8 +111,14 @@ export default async function handler(req, res) {
     const mode = url.searchParams.get('hub.mode')
     const token = url.searchParams.get('hub.verify_token')
     const challenge = url.searchParams.get('hub.challenge')
+    const expected = process.env.FACEBOOK_VERIFY_TOKEN
 
-    if (mode === 'subscribe' && token === process.env.FACEBOOK_VERIFY_TOKEN) {
+    console.log('[facebook-webhook] GET verify — mode:', mode)
+    console.log('[facebook-webhook] GET verify — received hub.verify_token:', JSON.stringify(token))
+    console.log('[facebook-webhook] GET verify — expected FACEBOOK_VERIFY_TOKEN:', JSON.stringify(expected))
+    console.log('[facebook-webhook] GET verify — tokens match:', token === expected)
+
+    if (mode === 'subscribe' && expected && token === expected) {
       res.status(200).send(challenge)
     } else {
       res.status(403).send('Forbidden')
