@@ -14,7 +14,6 @@ import {
   Menu as MenuIcon,
   Wallet,
   PiggyBank,
-  Snowflake,
   QrCode,
   Inbox,
   Image as ImageIcon,
@@ -27,7 +26,6 @@ import { cn } from '../../lib/utils'
 import Logo from '../ui/Logo'
 import NotificationBell from './NotificationBell'
 import BookingDetailDrawer from './booking-detail/BookingDetailDrawer'
-import ChristmasBackground from './ChristmasBackground'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -72,23 +70,25 @@ export default function AdminLayout() {
 
   return (
     <div className="admin-shell min-h-screen flex bg-cream">
-      <ChristmasBackground />
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 w-64 bg-wine text-warm-white flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static',
+          // The sidebar deliberately uses the page-background/primary-text
+          // pair (bg-cream/text-text-dark) rather than bg-wine/text-warm-white
+          // — with wine now mapped to gold, a full-height gold panel would
+          // read as "gold sidebar app," not "night sky with gold accents."
+          'fixed inset-y-0 left-0 z-40 w-64 bg-cream text-text-dark border-r border-gold/10 flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Festive top accent — crimson / gold / holly, subtle */}
-        <div className="h-1.5 shrink-0 bg-gradient-to-r from-wine via-gold to-success" aria-hidden="true" />
+        {/* Flat gold top accent (was a crimson/gold/holly gradient) */}
+        <div className="h-[2px] shrink-0 bg-gold" aria-hidden="true" />
 
-        <div className="px-6 py-5 border-b border-warm-white/10 flex items-center gap-3 relative">
-          <Logo className="w-10 h-10 text-warm-white shrink-0" />
+        <div className="px-6 py-5 border-b border-gold/10 flex items-center gap-3">
+          <Logo className="w-10 h-10 text-gold shrink-0" />
           <div>
             <h1 className="font-heading text-xl font-bold leading-tight">Savor and Style</h1>
-            <p className="text-xs text-warm-white/70 mt-1">{BUSINESS.displayLocation}</p>
+            <p className="text-xs text-text-muted mt-1">{BUSINESS.displayLocation}</p>
           </div>
-          <Snowflake className="w-4 h-4 text-warm-white/25 absolute top-3 right-4" aria-hidden="true" />
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -101,8 +101,8 @@ export default function AdminLayout() {
                 cn(
                   'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-warm-white/15 text-warm-white'
-                    : 'text-warm-white/80 hover:bg-warm-white/10'
+                    ? 'bg-gold/15 text-gold'
+                    : 'text-text-muted hover:bg-gold/10 hover:text-text-dark'
                 )
               }
             >
@@ -112,10 +112,10 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <div className="px-3 py-4 border-t border-warm-white/10">
+        <div className="px-3 py-4 border-t border-gold/10">
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-warm-white/80 hover:bg-warm-white/10 w-full transition-colors"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-muted hover:bg-gold/10 hover:text-text-dark w-full transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Log Out

@@ -192,7 +192,7 @@ export default function AdminGallery() {
           onClick={() => setCategoryFilter('')}
           className={cn(
             'px-3 py-1.5 rounded-full text-sm font-medium border transition-colors',
-            categoryFilter === '' ? 'bg-wine text-white border-wine' : 'border-gold/30 text-text-muted hover:text-wine'
+            categoryFilter === '' ? 'bg-wine text-warm-white border-wine' : 'border-gold/30 text-text-muted hover:text-wine'
           )}
         >
           All ({photos.length})
@@ -208,7 +208,7 @@ export default function AdminGallery() {
               className={cn(
                 'px-3 py-1.5 rounded-full text-sm font-medium border transition-colors',
                 categoryFilter === cat
-                  ? 'bg-wine text-white border-wine'
+                  ? 'bg-wine text-warm-white border-wine'
                   : 'border-gold/30 text-text-muted hover:text-wine'
               )}
             >

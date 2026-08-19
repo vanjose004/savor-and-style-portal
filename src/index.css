@@ -41,18 +41,101 @@ section[id] {
 }
 
 /* ─────────────────────────────────────────────────────────────────────
-   Admin Christmas theme — scoped color overrides.
-   Every /admin/* route renders inside .admin-shell (AdminLayout's root),
-   so overriding the same custom properties here only changes how the
-   shared bg-wine/text-wine/border-gold/etc. utilities resolve *inside*
-   that subtree. Card, Badge, Button, StatusBadge and friends are never
-   edited — client-facing pages (/, /book, /booking/:access_token) never
-   render inside .admin-shell, so they keep the original brand palette
-   from @theme above untouched.
+   Admin "night sky nativity" theme — scoped color overrides.
+   Every /admin/* route (plus the standalone /admin/login screen) renders
+   inside .admin-shell, so overriding the same custom properties here only
+   changes how the shared bg-wine/text-wine/bg-cream/border-gold/etc.
+   utilities resolve *inside* that subtree. Card, Badge, Button,
+   StatusBadge and friends are never edited — client-facing pages
+   (/, /landing, /book, /gallery, /booking/:access_token, /attendance/*)
+   never render inside .admin-shell, so they keep the original red/gold
+   brand palette from @theme above, and the Staff/Chef portals keep the
+   original light theme too (they don't use .admin-shell).
+
+   Role mapping (why each token became what it did):
+   - wine/wine-dark (brand accent: headings, primary buttons, focus rings)
+     → the two golds. Nothing in this palette plays "the other" accent
+     role wine used to, so gold takes over everywhere wine appears.
+   - gold (existing subtle borders/dividers, badge "gold" variant)
+     → warm gold, doubling as this theme's divider/hairline color at low
+     opacity (e.g. border-gold/20), since introducing a wholly separate
+     divider token would mean rewriting border-gold/* across every shared
+     UI primitive (Card, Input, Select, Modal, etc.) instead of just this
+     one variable.
+   - cream (page background + subtle hover/zebra washes)
+     → deep night blue. This preserves its existing role as "the base,
+     slightly-duller-than-card tone" — it was already darker/muted than
+     warm-white in the light theme, same relationship as page-bg vs
+     card-bg here.
+   - warm-white (card/surface/input/modal background)
+     → lighter navy, the elevated-surface tone.
+   - text-dark / text-muted → warm cream / soft blue-gray, exactly as
+     specified.
+   - success / danger → the two given status-badge text colors
+     (confirmed/positive, warning/due) — Badge/StatusBadge render as
+     bg-{color}/10 text-{color}, so one hex per token drives both the
+     translucent badge wash and the solid text/icon color everywhere else
+     (buttons, progress bars, StatCard icons) consistently.
+   - warning → a third warm amber (not separately specified) so pending/
+     suggested states stay visually distinct from both success and danger.
    ───────────────────────────────────────────────────────────────────── */
 .admin-shell {
-  --color-wine: #a51c2c; /* deeper Christmas crimson, was the muted burgundy */
-  --color-wine-dark: #6e1220;
-  --color-gold: #d4af37; /* brighter metallic gold for buttons/borders */
-  --color-success: #14532d; /* deep forest/holly green, was the flatter green */
+  --color-wine: #d4a843; /* gold — headings, primary buttons, links, focus rings */
+  --color-wine-dark: #c9932c; /* warm gold — hover/darken states */
+  --color-gold: #c9932c; /* warm gold — borders, dividers, "gold" badge variant */
+  --color-cream: #0a1128; /* deep night blue — page background */
+  --color-warm-white: #131c3d; /* lighter navy — card/surface background */
+  --color-text-dark: #f2e6c9; /* warm cream — primary text */
+  --color-text-muted: #8c93b8; /* soft blue-gray — secondary/muted text */
+  --color-success: #e0b74f; /* confirmed/positive */
+  --color-danger: #e8a0a0; /* warning/due */
+  --color-warning: #d9a441; /* pending (derived — distinct from success/danger) */
+}
+
+/* Countdown badges on /admin/bookings and the "contacted" soft-reserve
+   status use Tailwind's stock blue/orange/yellow scale directly (not the
+   --color-* tokens above), because Badge.jsx's blue/orange/yellow variants
+   predate this theme system and were never migrated to custom properties.
+   Those stock shades (e.g. text-blue-700) are tuned for light backgrounds
+   and go unreadable on a dark page, so they're overridden here by class
+   name instead of introducing new tokens for three lightly-used variants. */
+.admin-shell .bg-blue-500\/10 {
+  background-color: rgb(59 130 246 / 0.15);
+}
+.admin-shell .text-blue-700 {
+  color: #7fb3ff;
+}
+.admin-shell .bg-orange-500\/10 {
+  background-color: rgb(249 115 22 / 0.15);
+}
+.admin-shell .text-orange-700 {
+  color: #e8a561;
+}
+.admin-shell .bg-yellow-400\/15 {
+  background-color: rgb(250 204 21 / 0.15);
+}
+.admin-shell .text-yellow-700 {
+  color: #d9a441;
+}
+
+/* Divider lines get their own distinct color rather than falling out of
+   the gold token above. In practice every hairline divider/separator in
+   this app (row dividers, section borders) uses gold at 10% opacity
+   specifically — never 15%+, which is reserved for more visible borders
+   (cards, inputs, focus rings) — so this only targets that one opacity
+   step, leaving the "warm gold" look everywhere else untouched. */
+.admin-shell .border-gold\/10 {
+  border-color: #23305c;
+}
+.admin-shell .divide-gold\/10 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #23305c;
+}
+
+/* Avatar/profile circle — not currently used anywhere in the admin UI,
+   but defined here per the theme spec so it's ready to apply (e.g.
+   className="avatar-circle") if a staff/client initials badge is ever
+   added. */
+.admin-shell .avatar-circle {
+  background-color: #c9932c;
+  color: #0a1128;
 }

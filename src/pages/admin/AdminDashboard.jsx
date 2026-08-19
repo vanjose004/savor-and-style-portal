@@ -31,12 +31,12 @@ const REQUEST_TYPE_LABELS = {
   other: 'Request',
 }
 
-// Festive top accent (crimson/gold/holly) for this page's panels — applied
-// via className only, since Card is shared with client-facing pages and is
-// never edited directly. Resolves to the admin Christmas palette because
-// this page always renders inside AdminLayout's .admin-shell scope.
-const FESTIVE_CARD_ACCENT =
-  "relative overflow-hidden before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-1.5 before:bg-gradient-to-r before:from-wine before:via-gold before:to-success"
+// Flat gold top accent for this page's panels — applied via className
+// only, since Card is shared with client-facing pages and is never edited
+// directly. Resolves to the admin night-sky palette because this page
+// always renders inside AdminLayout's .admin-shell scope.
+const CARD_TOP_ACCENT =
+  "relative overflow-hidden before:content-[''] before:absolute before:inset-x-0 before:top-0 before:h-[2px] before:bg-gold"
 
 // Short "(Package 2, +Lechon, +Cake Table — est. ₱40,300)" suffix for the
 // Recent Activity feed, so a booking submitted through the public /book
@@ -316,7 +316,7 @@ export default function AdminDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card title="Upcoming Events (Next 30 Days)" className={FESTIVE_CARD_ACCENT}>
+        <Card title="Upcoming Events (Next 30 Days)" className={CARD_TOP_ACCENT}>
           {upcomingEvents.length === 0 ? (
             <EmptyState
               icon={CalendarDays}
@@ -349,7 +349,7 @@ export default function AdminDashboard() {
           )}
         </Card>
 
-        <Card title="Recent Activity" className={FESTIVE_CARD_ACCENT}>
+        <Card title="Recent Activity" className={CARD_TOP_ACCENT}>
           {activity.length === 0 ? (
             <EmptyState
               icon={Receipt}

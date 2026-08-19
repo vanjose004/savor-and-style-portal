@@ -198,7 +198,7 @@ export default function MessengerBot() {
               key={i}
               className={cn(
                 'max-w-[85%] rounded-2xl px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap',
-                m.role === 'user' ? 'ml-auto bg-wine text-white' : 'bg-cream border border-gold/20 text-text-dark'
+                m.role === 'user' ? 'ml-auto bg-wine text-warm-white' : 'bg-cream border border-gold/20 text-text-dark'
               )}
             >
               {m.content}
