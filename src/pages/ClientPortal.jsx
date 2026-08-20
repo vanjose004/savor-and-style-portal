@@ -27,6 +27,7 @@ import DocumentsCard from '../components/client/DocumentsCard'
 import ContactCard from '../components/client/ContactCard'
 import DemoMenuCard from '../components/client/DemoMenuCard'
 import DemoPaymentCard from '../components/client/DemoPaymentCard'
+import DemoDocumentsCard from '../components/client/DemoDocumentsCard'
 
 export default function ClientPortal() {
   const { access_token: accessToken } = useParams()
@@ -113,6 +114,7 @@ export default function ClientPortal() {
           <>
             <DemoPaymentCard totalAmount={DEMO_TOTAL_AMOUNT} paid={DEMO_PAID} balance={DEMO_BALANCE} />
             <DemoMenuCard packageName={DEMO_PACKAGE_NAME} pax={booking.pax} items={DEMO_MENU_ITEMS} />
+            <DemoDocumentsCard />
           </>
         ) : (
           <>

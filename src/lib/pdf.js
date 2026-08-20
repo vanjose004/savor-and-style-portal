@@ -72,6 +72,27 @@ function drawLogo(doc, logo, x, y, height) {
   return width
 }
 
+// Stamps a translucent diagonal "DEMO" across every page already in the
+// document. Called last, right before doc.save(), so it sits on top of
+// everything else. Uses GState for opacity — supported since jsPDF v2.
+function stampDemoWatermark(doc) {
+  const pageCount = doc.getNumberOfPages()
+  for (let page = 1; page <= pageCount; page++) {
+    doc.setPage(page)
+    doc.saveGraphicsState()
+    doc.setGState(new doc.GState({ opacity: 0.14 }))
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(80)
+    doc.setTextColor(...COLOR_WINE)
+    doc.text('DEMO', PAGE_WIDTH / 2, PAGE_HEIGHT / 2, {
+      align: 'center',
+      angle: 45,
+    })
+    doc.restoreGraphicsState()
+  }
+  doc.setTextColor(...COLOR_TEXT_DARK)
+}
+
 // Admin queries return `booking.clients.{name,phone,address}`, while the
 // client-portal RPC returns flat `booking.client_*` fields — this normalizes
 // either shape so PDF generators can run from both contexts.
@@ -205,7 +226,7 @@ function createWriter(doc, startY = MARGIN) {
   }
 }
 
-export async function generateContractPDF(booking) {
+export async function generateContractPDF(booking, { watermark = false } = {}) {
   const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const client = getClientInfo(booking)
@@ -374,10 +395,11 @@ export async function generateContractPDF(booking) {
   w.paragraph('Authorized Representative: _____________________     Date: _________')
   w.paragraph(BUSINESS.name)
 
-  doc.save(`Contract_${booking.booking_code}.pdf`)
+  if (watermark) stampDemoWatermark(doc)
+  doc.save(`${watermark ? 'DEMO_' : ''}Contract_${booking.booking_code}.pdf`)
 }
 
-export async function generateAcknowledgementReceiptPDF(booking, payment) {
+export async function generateAcknowledgementReceiptPDF(booking, payment, { watermark = false } = {}) {
   const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const client = getClientInfo(booking)
@@ -526,10 +548,11 @@ export async function generateAcknowledgementReceiptPDF(booking, payment) {
   doc.setTextColor(...COLOR_WINE)
   doc.text('Thank you for your trust!', PAGE_WIDTH / 2, y, { align: 'center' })
 
-  doc.save(`AR_${payment.ar_number || booking.booking_code}.pdf`)
+  if (watermark) stampDemoWatermark(doc)
+  doc.save(`${watermark ? 'DEMO_' : ''}AR_${payment.ar_number || booking.booking_code}.pdf`)
 }
 
-export async function generateBookingFormPDF(booking, menuItems = []) {
+export async function generateBookingFormPDF(booking, menuItems = [], { watermark = false } = {}) {
   const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
   const client = getClientInfo(booking)
@@ -657,7 +680,8 @@ export async function generateBookingFormPDF(booking, menuItems = []) {
     w.paragraph(booking.special_requests)
   }
 
-  doc.save(`BookingForm_${booking.booking_code}.pdf`)
+  if (watermark) stampDemoWatermark(doc)
+  doc.save(`${watermark ? 'DEMO_' : ''}BookingForm_${booking.booking_code}.pdf`)
 }
 
 export async function generateCOEPDF(staffMember, purpose) {
