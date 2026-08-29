@@ -4,6 +4,7 @@ import { buildCustomPackagePDF } from '../../lib/pdf'
 import { BUSINESS } from '../../lib/constants'
 import Spinner from '../ui/Spinner'
 import Button from '../ui/Button'
+import MobilePackagePreview from './MobilePackagePreview'
 
 // Same inline mark used by Footer.jsx — lucide-react's icon set doesn't
 // include brand/logo glyphs.
@@ -15,13 +16,32 @@ function FacebookIcon(props) {
   )
 }
 
+// Mobile browsers (notably iOS Safari and most in-app WebViews) can't render
+// a PDF blob inside an <iframe> — the pane just stays blank. Detect via
+// viewport width or a mobile user-agent match and fall back to an HTML
+// preview (MobilePackagePreview) built from the same `summary` data instead.
+function isMobileDevice() {
+  if (typeof window === 'undefined') return false
+  const uaIsMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent)
+  return window.innerWidth < 768 || uaIsMobile
+}
+
 // No name/date form — clicking "Create My Package" on the page opens this
-// straight into a live PDF preview (rendered from the exact same jsPDF doc
-// that gets downloaded, so preview and download can never drift apart).
+// straight into a preview. Desktop gets a live PDF preview (rendered from
+// the exact same jsPDF doc that gets downloaded, so preview and download can
+// never drift apart); mobile gets an HTML preview instead (see
+// isMobileDevice above) — the PDF still builds in the background either way
+// so "Download PDF" always works.
 export default function PackagePreviewModal({ open, onClose, summary }) {
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const pdfRef = useRef(null) // { doc, filename, blobUrl }
   const [blobUrl, setBlobUrl] = useState(null)
+
+  useEffect(() => {
+    if (!open) return
+    setIsMobile(isMobileDevice())
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -95,8 +115,10 @@ export default function PackagePreviewModal({ open, onClose, summary }) {
           </button>
         </div>
 
-        <div className="flex-1 min-h-0 bg-cream">
-          {loading ? (
+        <div className="flex-1 min-h-0 bg-cream overflow-y-auto">
+          {isMobile ? (
+            <MobilePackagePreview summary={summary} />
+          ) : loading ? (
             <div className="w-full h-full flex flex-col items-center justify-center gap-3">
               <Spinner className="w-8 h-8" />
               <p className="text-sm text-text-muted">Preparing your package preview…</p>
