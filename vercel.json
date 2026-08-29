@@ -1,4 +1,12 @@
 {
+  "redirects": [
+    {
+      "source": "/((?!api/).*)",
+      "has": [{ "type": "host", "value": "savor-and-style-portal.vercel.app" }],
+      "destination": "https://www.savorandstylecatering.com/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]

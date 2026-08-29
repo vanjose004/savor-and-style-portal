@@ -14,8 +14,7 @@ export const BUSINESS = {
   // get printed/screenshotted and live indefinitely — e.g. the permanent
   // home-base attendance QR. Generating one from a preview-deploy domain
   // by accident would silently break a physically-posted poster forever.
-  // Update if a custom domain is ever attached.
-  siteUrl: 'https://savor-and-style-portal.vercel.app',
+  siteUrl: 'https://www.savorandstylecatering.com',
 }
 
 export const EVENT_TYPES = [
