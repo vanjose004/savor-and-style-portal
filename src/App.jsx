@@ -60,6 +60,7 @@ import EventCheckin from './pages/EventCheckin'
 // which any other role (admin/staff/chef) needs in their initial bundle.
 const Landing = lazy(() => import('./pages/Landing'))
 const PublicGallery = lazy(() => import('./pages/Gallery'))
+const MakeYourOwnPackage = lazy(() => import('./pages/MakeYourOwnPackage'))
 
 function App() {
   return (
@@ -82,6 +83,14 @@ function App() {
               element={
                 <Suspense fallback={null}>
                   <PublicGallery />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/wedding-quote"
+              element={
+                <Suspense fallback={null}>
+                  <MakeYourOwnPackage />
                 </Suspense>
               }
             />

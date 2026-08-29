@@ -756,3 +756,188 @@ export async function generateCOEPDF(staffMember, purpose) {
 
   doc.save(`COE_${staffMember.name.replace(/\s+/g, '_')}.pdf`)
 }
+
+// The "Make Your Own Package" builder (src/pages/MakeYourOwnPackage.jsx)
+// intentionally hides every per-item price in its UI — only the grand total
+// is shown. This PDF carries that same rule through to the client's takeaway
+// file: the only peso figure printed anywhere on the page is the grand total.
+export async function generateCustomPackagePDF({ clientName, eventType, eventDate, venue, catering, supplierLabels, grandTotal }) {
+  const logo = await loadLogo()
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+
+  // --- Header band ---------------------------------------------------
+  const BAND_HEIGHT = 36
+  doc.setFillColor(...COLOR_WINE)
+  doc.rect(0, 0, PAGE_WIDTH, BAND_HEIGHT, 'F')
+
+  let textX = MARGIN
+  if (logo) {
+    const logoHeight = 20
+    textX += drawLogo(doc, logo, MARGIN, (BAND_HEIGHT - logoHeight) / 2, logoHeight) + 4
+  }
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.setTextColor(...COLOR_WARM_WHITE)
+  doc.text(BUSINESS.name, textX, 16)
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...COLOR_WINE_MUTED)
+  doc.text(BUSINESS.address, textX, 21)
+  doc.text(`Tel: ${BUSINESS.phone}`, textX, 25.5)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(15)
+  doc.setTextColor(...COLOR_GOLD)
+  doc.text('MAKE YOUR OWN PACKAGE', PAGE_WIDTH - MARGIN, 15, { align: 'right' })
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(...COLOR_WARM_WHITE)
+  doc.text('Package Summary', PAGE_WIDTH - MARGIN, 22, { align: 'right' })
+  doc.text(formatDate(new Date().toISOString().slice(0, 10)), PAGE_WIDTH - MARGIN, 28, { align: 'right' })
+
+  // --- Prepared For / Event Details boxes -----------------------------
+  let y = BAND_HEIGHT + 12
+  const boxHeight = 30
+  const colWidth = (CONTENT_WIDTH - 8) / 2
+  const rightX = MARGIN + colWidth + 8
+
+  doc.setFillColor(...COLOR_CREAM)
+  doc.roundedRect(MARGIN, y, colWidth, boxHeight, 2, 2, 'F')
+  doc.roundedRect(rightX, y, colWidth, boxHeight, 2, 2, 'F')
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(8)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text('PREPARED FOR', MARGIN + 5, y + 7)
+  doc.text('EVENT DETAILS', rightX + 5, y + 7)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(11)
+  doc.setTextColor(...COLOR_TEXT_DARK)
+  doc.text(clientName || '—', MARGIN + 5, y + 15)
+  doc.text(eventType || '—', rightX + 5, y + 15)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8.5)
+  doc.setTextColor(...COLOR_TEXT_MUTED)
+  doc.text(formatDate(eventDate), rightX + 5, y + 21)
+  doc.splitTextToSize(venue || '—', colWidth - 10)
+    .slice(0, 2)
+    .forEach((line, i) => doc.text(line, rightX + 5, y + 26 + i * 4))
+
+  y += boxHeight + 10
+
+  // --- Catering Package -------------------------------------------------
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10.5)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text('CATERING PACKAGE', MARGIN, y)
+  y += 6
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9.5)
+  doc.setTextColor(...COLOR_TEXT_DARK)
+  doc.text(
+    catering ? `${catering.tier} Package — ${catering.pax} pax` : 'No catering package selected',
+    MARGIN,
+    y
+  )
+  y += 5
+  if (catering?.wedding) {
+    doc.text('•  Wedding Rate Applied', MARGIN, y)
+    y += 5
+  }
+  if (catering?.beefSwap) {
+    doc.text('•  Beef Dish Swap Included', MARGIN, y)
+    y += 5
+  }
+
+  // --- Selected Add-Ons -------------------------------------------------
+  y += 4
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10.5)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text('SELECTED ADD-ONS', MARGIN, y)
+  y += 6
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9.5)
+  doc.setTextColor(...COLOR_TEXT_DARK)
+  if (!supplierLabels || supplierLabels.length === 0) {
+    doc.text('No add-ons selected.', MARGIN, y)
+    y += 5
+  } else {
+    supplierLabels.forEach((label) => {
+      doc.splitTextToSize(`•  ${label}`, CONTENT_WIDTH).forEach((line) => {
+        if (y > PAGE_HEIGHT - MARGIN - 60) {
+          doc.addPage()
+          y = MARGIN
+        }
+        doc.text(line, MARGIN, y)
+        y += 5
+      })
+    })
+  }
+
+  // --- Coordination fee row (no amount — always "Included") ------------
+  y += 4
+  doc.setDrawColor(...COLOR_GOLD)
+  doc.setLineWidth(0.3)
+  doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y)
+  y += 7
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(...COLOR_WINE)
+  doc.text('Savor & Style All-In Coordination Fee', MARGIN, y)
+  doc.setTextColor(...COLOR_SUCCESS)
+  doc.text('Included', PAGE_WIDTH - MARGIN, y, { align: 'right' })
+
+  y += 12
+
+  // --- Grand Total block (the only peso figure on the page) ------------
+  const totalBlockHeight = 26
+  if (y + totalBlockHeight > PAGE_HEIGHT - MARGIN - 30) {
+    doc.addPage()
+    y = MARGIN
+  }
+  doc.setFillColor(...COLOR_WINE)
+  doc.roundedRect(MARGIN, y, CONTENT_WIDTH, totalBlockHeight, 3, 3, 'F')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.setTextColor(...COLOR_WARM_WHITE)
+  doc.text('GRAND TOTAL', MARGIN + 8, y + totalBlockHeight / 2 + 1.5)
+  doc.setFontSize(20)
+  doc.setTextColor(...COLOR_GOLD)
+  doc.text(formatPhp(grandTotal), PAGE_WIDTH - MARGIN - 8, y + totalBlockHeight / 2 + 2.5, { align: 'right' })
+
+  y += totalBlockHeight + 12
+
+  // --- Footer / confirmation CTA -----------------------------------------
+  doc.setDrawColor(...COLOR_GOLD)
+  doc.setLineWidth(0.3)
+  doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y)
+  y += 7
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(9.5)
+  doc.setTextColor(...COLOR_WINE)
+  doc
+    .splitTextToSize(
+      `To confirm this package, send this to us on Facebook Messenger or call/text: ${BUSINESS.phone}`,
+      CONTENT_WIDTH
+    )
+    .forEach((line) => {
+      doc.text(line, PAGE_WIDTH / 2, y, { align: 'center' })
+      y += 5.5
+    })
+
+  y += 3
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...COLOR_TEXT_MUTED)
+  doc.text(`${BUSINESS.name}  •  ${BUSINESS.facebookUrl}`, PAGE_WIDTH / 2, y, { align: 'center' })
+
+  const safeClientName = (clientName || 'Client').trim().replace(/\s+/g, '_')
+  doc.save(`SavorAndStyle_Package_${safeClientName}_${eventDate}.pdf`)
+}

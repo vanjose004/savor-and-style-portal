@@ -13,6 +13,7 @@ const NAV_LINKS = [
   { label: 'Home', href: '#home' },
   { label: 'Events', href: '#events' },
   { label: 'Packages', href: '#packages' },
+  { label: 'Build Your Own', href: '/wedding-quote' },
   { label: 'Gallery', href: '/gallery' },
   { label: 'Testimonials', href: '#testimonials' },
   { label: 'Contact', href: '#contact' },

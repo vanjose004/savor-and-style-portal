@@ -1,4 +1,5 @@
-import { Check, Gift } from 'lucide-react'
+import { Check, Gift, Sparkles } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import Reveal from './Reveal'
 import { SOFT_RESERVE_PACKAGES, peso } from '../../lib/constants'
 import { useSoftReserve } from '../../hooks/useSoftReserve'
@@ -107,6 +108,18 @@ export default function Packages() {
           <p className="mt-8 text-center text-sm text-text-muted italic">
             Sample pricing shown — message us to confirm the latest rates for your event.
           </p>
+        </Reveal>
+
+        <Reveal delay={0.25}>
+          <div className="mt-10 flex justify-center">
+            <Link
+              to="/wedding-quote"
+              className="inline-flex items-center gap-2 font-semibold text-wine border border-wine/40 bg-cream px-6 py-3 rounded-full transition-all hover:bg-wine hover:text-white hover:scale-[1.02]"
+            >
+              <Sparkles className="w-4 h-4" />
+              Planning a wedding? Build Your Own Package
+            </Link>
+          </div>
         </Reveal>
       </div>
     </section>
