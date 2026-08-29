@@ -8,6 +8,26 @@
 
 import { formatCurrency } from './utils'
 
+// Transport fee is added to the grand total but is never displayed as a
+// peso amount anywhere in the UI or PDF — only as "FREE Transport" (₱0 zone)
+// or "Transport — Included" (any paid zone). See getTransportLabel below.
+export const VENUE_ZONES = [
+  { id: 'sta_maria', label: 'Sta. Maria & Nearby', fee: 0 },
+  { id: 'bulacan_other', label: 'Bulacan (Other Towns)', fee: 1000 },
+  { id: 'metro_manila', label: 'Metro Manila', fee: 3000 },
+  {
+    id: 'south_far',
+    label: 'South / Far Areas',
+    description: 'Makati, Parañaque, Las Piñas, Laguna, Cavite',
+    fee: 5000,
+  },
+]
+
+export function getTransportLabel(zone) {
+  if (!zone) return ''
+  return zone.fee === 0 ? 'FREE Transport' : 'Transport — Included'
+}
+
 export const CATERING_PAX_OPTIONS = [50, 60, 70, 80, 90, 100, 150, 200]
 
 export const WEDDING_RATE_ADDON = 5000

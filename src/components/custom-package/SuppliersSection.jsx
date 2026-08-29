@@ -192,7 +192,7 @@ export default function SuppliersSection({
 
   return (
     <section>
-      <h2 className="font-heading font-bold text-2xl text-wine">2. Optional Suppliers</h2>
+      <h2 className="font-heading font-bold text-2xl text-wine">3. Optional Suppliers</h2>
       <p className="text-sm text-text-muted mt-1">Mix and match — add anything you'd like included.</p>
 
       <div className="mt-6 space-y-3">

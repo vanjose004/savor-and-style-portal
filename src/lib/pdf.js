@@ -761,7 +761,15 @@ export async function generateCOEPDF(staffMember, purpose) {
 // intentionally hides every per-item price in its UI — only the grand total
 // is shown. This PDF carries that same rule through to the client's takeaway
 // file: the only peso figure printed anywhere on the page is the grand total.
-export async function generateCustomPackagePDF({ clientName, eventType, eventDate, venue, catering, supplierLabels, grandTotal }) {
+export async function generateCustomPackagePDF({
+  clientName,
+  eventDate,
+  venueZoneLabel,
+  transportLabel,
+  catering,
+  supplierLabels,
+  grandTotal,
+}) {
   const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
 
@@ -815,15 +823,13 @@ export async function generateCustomPackagePDF({ clientName, eventType, eventDat
   doc.setFontSize(11)
   doc.setTextColor(...COLOR_TEXT_DARK)
   doc.text(clientName || '—', MARGIN + 5, y + 15)
-  doc.text(eventType || '—', rightX + 5, y + 15)
+  doc.text(venueZoneLabel || '—', rightX + 5, y + 15)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...COLOR_TEXT_MUTED)
   doc.text(formatDate(eventDate), rightX + 5, y + 21)
-  doc.splitTextToSize(venue || '—', colWidth - 10)
-    .slice(0, 2)
-    .forEach((line, i) => doc.text(line, rightX + 5, y + 26 + i * 4))
+  doc.text(transportLabel || '', rightX + 5, y + 26)
 
   y += boxHeight + 10
 
@@ -867,8 +873,13 @@ export async function generateCustomPackagePDF({ clientName, eventType, eventDat
     doc.text('No add-ons selected.', MARGIN, y)
     y += 5
   } else {
+    // supplierLabels come from getSupplierSummary() and use formatCurrency()
+    // (₱) for display in the browser — jsPDF's standard font can't render
+    // that glyph and corrupts the whole line's spacing, so swap it for the
+    // "PHP "-prefixed style used everywhere else in this file.
     supplierLabels.forEach((label) => {
-      doc.splitTextToSize(`•  ${label}`, CONTENT_WIDTH).forEach((line) => {
+      const pdfSafeLabel = label.replace(/₱/g, 'PHP ')
+      doc.splitTextToSize(`•  ${pdfSafeLabel}`, CONTENT_WIDTH).forEach((line) => {
         if (y > PAGE_HEIGHT - MARGIN - 60) {
           doc.addPage()
           y = MARGIN

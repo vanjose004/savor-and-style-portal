@@ -1,21 +1,37 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check } from 'lucide-react'
-import { formatCurrency } from '../../lib/utils'
 import { COORDINATION_FEE_LABEL } from '../../lib/customPackage'
 
+// Intentionally shows NO prices at all, not even the grand total — per the
+// page's design, the total is only revealed inside PackageDownloadModal
+// after the client submits their name + event date. This panel is just a
+// names-only recap of what's currently selected.
 export default function RunningTotalPanel({
+  venueZone,
+  transportLabel,
   tier,
   pax,
   isWedding,
   beefSwap,
   supplierLabels,
-  grandTotal,
   canRequest,
   onRequest,
 }) {
   return (
     <div className="bg-wine text-warm-white rounded-2xl p-6 shadow-xl border border-gold/30">
       <h3 className="font-heading font-bold text-xl text-gold">Your Package</h3>
+
+      <div className="mt-4 pb-4 border-b border-white/15">
+        <p className="text-xs uppercase tracking-wide text-white/60">Venue</p>
+        {venueZone ? (
+          <>
+            <p className="font-semibold mt-1">{venueZone.label}</p>
+            <p className="text-xs text-white/70">{transportLabel}</p>
+          </>
+        ) : (
+          <p className="text-sm text-white/60 mt-1">Select your venue location to get started.</p>
+        )}
+      </div>
 
       <div className="mt-4 pb-4 border-b border-white/15">
         <p className="text-xs uppercase tracking-wide text-white/60">Catering</p>
@@ -62,29 +78,19 @@ export default function RunningTotalPanel({
         <span className="font-medium text-gold">Included</span>
       </div>
 
-      <div className="flex items-center justify-between mt-3 pt-3 border-t border-gold/30">
-        <span className="font-heading font-bold text-lg">Grand Total</span>
-        <motion.span
-          key={grandTotal}
-          initial={{ scale: 1.08 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.2 }}
-          className="font-heading font-extrabold text-2xl text-gold"
-        >
-          {formatCurrency(grandTotal)}
-        </motion.span>
-      </div>
-
       <button
         type="button"
         disabled={!canRequest}
         onClick={onRequest}
         className="mt-5 w-full text-center font-semibold px-5 py-3 rounded-full bg-gold text-wine-dark transition-all hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gold"
       >
-        Download My Package
+        Create My Package
       </button>
       {!canRequest && (
-        <p className="text-xs text-white/50 mt-2 text-center">Select a catering package to continue</p>
+        <p className="text-xs text-white/50 mt-2 text-center">Select your venue and catering package to continue</p>
+      )}
+      {canRequest && (
+        <p className="text-xs text-white/50 mt-2 text-center">Your Grand Total is revealed in the next step</p>
       )}
     </div>
   )

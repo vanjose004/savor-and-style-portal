@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Sparkles } from 'lucide-react'
 import { generateCustomPackagePDF } from '../../lib/pdf'
-import { BUSINESS, EVENT_TYPES } from '../../lib/constants'
+import { formatCurrency } from '../../lib/utils'
+import { BUSINESS } from '../../lib/constants'
 import Modal from '../ui/Modal'
 import Input from '../ui/Input'
-import Select from '../ui/Select'
 import Button from '../ui/Button'
 
 function todayStr() {
@@ -22,35 +22,44 @@ function FacebookIcon(props) {
   )
 }
 
+// Three stages: 'form' (Name + Event Date only) -> 'reveal' (Grand Total
+// shown for the first time, Download PDF button) -> 'done' (post-download
+// confirmation). The grand total is never shown in the page itself — this
+// modal is the only place it's revealed, and only after the form step.
 export default function PackageDownloadModal({ open, onClose, summary }) {
+  const [stage, setStage] = useState('form')
+  const [clientInfo, setClientInfo] = useState(null)
   const [downloading, setDownloading] = useState(false)
-  const [downloaded, setDownloaded] = useState(false)
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm({
-    defaultValues: { name: '', event_type: summary.isWedding ? 'Wedding' : '', event_date: '', venue: '' },
-  })
+  } = useForm({ defaultValues: { name: '', event_date: '' } })
 
   const handleClose = () => {
     onClose()
     // Reset after the close animation-less unmount so a reopen starts fresh.
     setTimeout(() => {
-      setDownloaded(false)
+      setStage('form')
+      setClientInfo(null)
       reset()
     }, 200)
   }
 
-  const onSubmit = async (values) => {
+  const onSubmitDetails = (values) => {
+    setClientInfo({ name: values.name.trim(), eventDate: values.event_date })
+    setStage('reveal')
+  }
+
+  const handleDownload = async () => {
     setDownloading(true)
 
     await generateCustomPackagePDF({
-      clientName: values.name.trim(),
-      eventType: values.event_type,
-      eventDate: values.event_date,
-      venue: values.venue.trim(),
+      clientName: clientInfo.name,
+      eventDate: clientInfo.eventDate,
+      venueZoneLabel: summary.venueZone?.label ?? '',
+      transportLabel: summary.transportLabel,
       catering: summary.tier
         ? {
             tier: summary.tier.name,
@@ -64,10 +73,10 @@ export default function PackageDownloadModal({ open, onClose, summary }) {
     })
 
     setDownloading(false)
-    setDownloaded(true)
+    setStage('done')
   }
 
-  if (downloaded) {
+  if (stage === 'done') {
     return (
       <Modal
         open={open}
@@ -95,47 +104,51 @@ export default function PackageDownloadModal({ open, onClose, summary }) {
     )
   }
 
+  if (stage === 'reveal') {
+    return (
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title="Your Grand Total"
+        footer={
+          <Button className="w-full" onClick={handleDownload} disabled={downloading}>
+            {downloading ? 'Preparing…' : 'Download PDF Summary'}
+          </Button>
+        }
+      >
+        <div className="text-center py-4">
+          <Sparkles className="w-10 h-10 text-gold mx-auto mb-3" />
+          <p className="text-sm text-text-muted mb-2">Here's your custom package total, {clientInfo.name}:</p>
+          <p className="font-heading font-extrabold text-4xl text-wine">{formatCurrency(summary.grandTotal)}</p>
+          <p className="text-xs text-text-muted mt-4">
+            Download your package summary as a PDF — send it to us on Facebook Messenger to confirm.
+          </p>
+        </div>
+      </Modal>
+    )
+  }
+
   return (
     <Modal
       open={open}
       onClose={handleClose}
-      title="Download Your Package Summary"
+      title="Create My Package"
       footer={
-        <Button type="submit" form="package-download-form" className="w-full" disabled={downloading}>
-          {downloading ? 'Preparing…' : 'Download My Package'}
+        <Button type="submit" form="package-download-form" className="w-full">
+          Reveal My Grand Total
         </Button>
       }
     >
-      <p className="text-sm text-text-muted -mt-2 mb-4">
-        We'll put together a summary you can send us on Facebook Messenger to confirm your booking.
-      </p>
+      <p className="text-sm text-text-muted -mt-2 mb-4">Just your name and event date — we'll reveal your total next.</p>
 
-      <form id="package-download-form" onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input
-          label="Name"
-          className="sm:col-span-2"
-          error={errors.name?.message}
-          {...register('name', { required: 'Name is required' })}
-        />
-        <Select
-          label="Event Type"
-          placeholder="Select event type"
-          options={EVENT_TYPES}
-          error={errors.event_type?.message}
-          {...register('event_type', { required: 'Event type is required' })}
-        />
+      <form id="package-download-form" onSubmit={handleSubmit(onSubmitDetails)} className="grid grid-cols-1 gap-4">
+        <Input label="Name" error={errors.name?.message} {...register('name', { required: 'Name is required' })} />
         <Input
           label="Event Date"
           type="date"
           min={todayStr()}
           error={errors.event_date?.message}
           {...register('event_date', { required: 'Event date is required' })}
-        />
-        <Input
-          label="Venue"
-          className="sm:col-span-2"
-          error={errors.venue?.message}
-          {...register('venue', { required: 'Venue is required' })}
         />
       </form>
 
