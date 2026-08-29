@@ -10,7 +10,7 @@ import Logo from '../ui/Logo'
 // — as a substitute preview. Still built from the same `summary` data the
 // PDF is built from, just laid out with JSX instead of jsPDF calls.
 export default function MobilePackagePreview({ summary }) {
-  const eventTypeLabel = summary.isWedding ? 'Wedding' : 'Birthday / Gathering'
+  const eventTypeLabel = summary.eventTypeLabel
   const dishList = summary.tier ? [...summary.tier.mainDishes, ...CATERING_BUNDLED_DISHES] : []
 
   return (
@@ -24,7 +24,7 @@ export default function MobilePackagePreview({ summary }) {
           </div>
         </div>
         <p className="font-heading font-bold text-lg text-gold mt-3">{eventTypeLabel} Package Summary</p>
-        <p className="text-xs text-white/70">Make Your Own Package</p>
+        <p className="text-xs text-white/70">{summary.pageTitle}</p>
       </div>
 
       <div className="p-5 space-y-5">
@@ -43,8 +43,7 @@ export default function MobilePackagePreview({ summary }) {
                 {summary.tier.name} Package — {summary.pax} pax
               </p>
               <p className="text-xs text-text-muted mt-1">Dishes: {dishList.join(', ')}</p>
-              {summary.isWedding && <p className="text-xs text-text-muted mt-1">• Wedding Rate Applied</p>}
-              {summary.beefSwap && <p className="text-xs text-text-muted">• Beef Dish Swap Included</p>}
+              {summary.beefSwap && <p className="text-xs text-text-muted mt-1">• Beef Dish Swap Included</p>}
 
               <p className="text-xs font-semibold text-wine mt-3 mb-1">Included With Every Tier:</p>
               <ul className="space-y-1">

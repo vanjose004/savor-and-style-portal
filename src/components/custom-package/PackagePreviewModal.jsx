@@ -50,14 +50,14 @@ export default function PackagePreviewModal({ open, onClose, summary }) {
 
     async function build() {
       const { doc, filename } = await buildCustomPackagePDF({
-        eventTypeLabel: summary.isWedding ? 'Wedding' : 'Birthday / Gathering',
+        eventTypeLabel: summary.eventTypeLabel,
+        pageTitle: summary.pageTitle,
         venueZoneLabel: summary.venueZone?.label ?? '',
         transportLabel: summary.transportLabel,
         catering: summary.tier
           ? {
               tier: summary.tier.name,
               pax: summary.pax,
-              wedding: summary.isWedding,
               beefSwap: summary.beefSwap,
               mainDishes: summary.tier.mainDishes,
             }

@@ -10,6 +10,7 @@ import {
 } from '../../lib/customPackage'
 
 export default function CateringSection({
+  eventCategory,
   venueSelected,
   pax,
   onPaxChange,
@@ -50,27 +51,29 @@ export default function CateringSection({
         )}
       </div>
 
-      <div className="mt-6">
-        <p className="text-sm font-semibold text-text-dark mb-2">Event Rate</p>
-        <div className="inline-flex rounded-full border border-gold/30 bg-warm-white p-1">
-          {[
-            { value: false, label: 'Birthday / Gathering' },
-            { value: true, label: 'Wedding' },
-          ].map((option) => (
-            <button
-              key={option.label}
-              type="button"
-              onClick={() => onWeddingChange(option.value)}
-              className={cn(
-                'px-4 py-1.5 rounded-full text-sm font-medium transition-all',
-                isWedding === option.value ? 'bg-wine text-warm-white shadow-sm' : 'text-text-dark hover:text-wine'
-              )}
-            >
-              {option.label}
-            </button>
-          ))}
+      {eventCategory !== 'debut' && (
+        <div className="mt-6">
+          <p className="text-sm font-semibold text-text-dark mb-2">Event Rate</p>
+          <div className="inline-flex rounded-full border border-gold/30 bg-warm-white p-1">
+            {[
+              { value: false, label: 'Birthday / Gathering' },
+              { value: true, label: 'Wedding' },
+            ].map((option) => (
+              <button
+                key={option.label}
+                type="button"
+                onClick={() => onWeddingChange(option.value)}
+                className={cn(
+                  'px-4 py-1.5 rounded-full text-sm font-medium transition-all',
+                  isWedding === option.value ? 'bg-wine text-warm-white shadow-sm' : 'text-text-dark hover:text-wine'
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {CATERING_TIERS.map((tier) => {

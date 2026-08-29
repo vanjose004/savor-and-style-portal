@@ -90,7 +90,15 @@ function App() {
               path="/wedding-quote"
               element={
                 <Suspense fallback={null}>
-                  <MakeYourOwnPackage />
+                  <MakeYourOwnPackage eventCategory="wedding" />
+                </Suspense>
+              }
+            />
+            <Route
+              path="/debut-quote"
+              element={
+                <Suspense fallback={null}>
+                  <MakeYourOwnPackage eventCategory="debut" />
                 </Suspense>
               }
             />

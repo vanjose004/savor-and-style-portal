@@ -11,7 +11,6 @@ export default function RunningTotalPanel({
   transportLabel,
   tier,
   pax,
-  isWedding,
   beefSwap,
   supplierItems,
   canRequest,
@@ -40,7 +39,6 @@ export default function RunningTotalPanel({
             <p className="font-semibold mt-1">
               {tier.name} Package — {pax} pax
             </p>
-            {isWedding && <p className="text-xs text-white/70">Wedding rate applied</p>}
             {beefSwap && <p className="text-xs text-white/70">Beef dish swap</p>}
           </>
         ) : (

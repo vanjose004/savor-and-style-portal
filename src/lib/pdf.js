@@ -770,6 +770,7 @@ export async function generateCOEPDF(staffMember, purpose) {
 // clicks "Download PDF".
 export async function buildCustomPackagePDF({
   eventTypeLabel,
+  pageTitle,
   venueZoneLabel,
   transportLabel,
   catering,
@@ -806,7 +807,7 @@ export async function buildCustomPackagePDF({
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...COLOR_WARM_WHITE)
-  doc.text('Make Your Own Package', PAGE_WIDTH - MARGIN, 22, { align: 'right' })
+  doc.text(pageTitle || 'Make Your Own Package', PAGE_WIDTH - MARGIN, 22, { align: 'right' })
   doc.text(formatDate(new Date().toISOString().slice(0, 10)), PAGE_WIDTH - MARGIN, 28, { align: 'right' })
 
   // --- Event Details box (event type, venue, transport) -----------------
@@ -859,10 +860,6 @@ export async function buildCustomPackagePDF({
       doc.text(line, MARGIN, y)
       y += 5
     })
-  }
-  if (catering?.wedding) {
-    doc.text('•  Wedding Rate Applied', MARGIN, y)
-    y += 5
   }
   if (catering?.beefSwap) {
     doc.text('•  Beef Dish Swap Included', MARGIN, y)

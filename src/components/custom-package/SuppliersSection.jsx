@@ -1,6 +1,6 @@
 import { Minus, Plus } from 'lucide-react'
 import { cn, formatCurrency } from '../../lib/utils'
-import { SUPPLIERS, ESSENTIAL_SUPPLIERS_NOTE } from '../../lib/customPackage'
+import { ESSENTIAL_SUPPLIERS_NOTE } from '../../lib/customPackage'
 
 function EssentialBadge() {
   return (
@@ -74,6 +74,7 @@ function QuantityStepper({ qty, onChange, min = 0, label = 'Remove one', addLabe
 }
 
 export default function SuppliersSection({
+  suppliers,
   pax,
   selections,
   onToggle,
@@ -83,8 +84,8 @@ export default function SuppliersSection({
   onQtyToggle,
   onQtyChange,
 }) {
-  const essentialSuppliers = SUPPLIERS.filter((s) => s.essential)
-  const otherSuppliers = SUPPLIERS.filter((s) => !s.essential)
+  const essentialSuppliers = suppliers.filter((s) => s.essential)
+  const otherSuppliers = suppliers.filter((s) => !s.essential)
 
   function renderSupplier(supplier) {
     if (supplier.type === 'toggle') {

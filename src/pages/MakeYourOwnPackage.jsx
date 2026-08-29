@@ -9,6 +9,7 @@ import {
   VENUE_ZONES,
   getCateringPrice,
   getSupplierSummary,
+  getSuppliers,
   getTransportLabel,
   initialSupplierSelections,
 } from '../lib/customPackage'
@@ -19,17 +20,28 @@ import SuppliersSection from '../components/custom-package/SuppliersSection'
 import RunningTotalPanel from '../components/custom-package/RunningTotalPanel'
 import PackagePreviewModal from '../components/custom-package/PackagePreviewModal'
 
-export default function MakeYourOwnPackage() {
+// Renders both /wedding-quote (eventCategory="wedding") and /debut-quote
+// (eventCategory="debut") — see src/App.jsx. The two differ only in title,
+// whether the Wedding/Birthday toggle shows at all, and a handful of
+// supplier prices/descriptions (see getSuppliers in customPackage.js).
+export default function MakeYourOwnPackage({ eventCategory = 'wedding' }) {
+  const isDebut = eventCategory === 'debut'
+  const pageTitle = isDebut ? 'Build Your Debut Package' : 'Make Your Own Package'
+  const builderBadge = isDebut ? 'Debut Package Builder' : 'Wedding Package Builder'
+
+  const suppliers = useMemo(() => getSuppliers(eventCategory), [eventCategory])
+
   const [venueId, setVenueId] = useState(null)
   const [pax, setPax] = useState(null)
   const [tierId, setTierId] = useState(null)
   const [isWedding, setIsWedding] = useState(false)
   const [beefSwap, setBeefSwap] = useState(false)
-  const [selections, setSelections] = useState(initialSupplierSelections)
+  const [selections, setSelections] = useState(() => initialSupplierSelections(suppliers))
   const [modalOpen, setModalOpen] = useState(false)
 
   const venueZone = useMemo(() => VENUE_ZONES.find((z) => z.id === venueId) ?? null, [venueId])
   const tier = useMemo(() => CATERING_TIERS.find((t) => t.id === tierId) ?? null, [tierId])
+  const eventTypeLabel = isDebut ? 'Debut' : isWedding ? 'Wedding' : 'Birthday / Gathering'
 
   const handleTierChange = (id) => {
     setTierId(id)
@@ -67,12 +79,14 @@ export default function MakeYourOwnPackage() {
 
   const transportFee = venueZone?.fee ?? 0
   const transportLabel = getTransportLabel(venueZone)
-  const cateringPrice = getCateringPrice({ tier, pax, isWedding, beefSwap })
-  const { total: suppliersTotal, items: supplierItems } = getSupplierSummary(selections)
+  const cateringPrice = getCateringPrice({ tier, pax, beefSwap })
+  const { total: suppliersTotal, items: supplierItems } = getSupplierSummary(selections, suppliers)
   const grandTotal = cateringPrice + suppliersTotal + transportFee + COORDINATION_FEE
   const canRequest = Boolean(venueZone && tier && pax)
 
   const summary = {
+    pageTitle,
+    eventTypeLabel,
     venueZone,
     transportLabel,
     tier,
@@ -110,9 +124,9 @@ export default function MakeYourOwnPackage() {
         className="max-w-3xl mx-auto text-center px-4 pt-12 pb-6"
       >
         <span className="inline-block text-xs font-semibold uppercase tracking-widest text-gold bg-wine px-4 py-1.5 rounded-full">
-          Wedding Package Builder
+          {builderBadge}
         </span>
-        <h1 className="font-heading font-bold text-3xl sm:text-4xl text-wine mt-4">Make Your Own Package</h1>
+        <h1 className="font-heading font-bold text-3xl sm:text-4xl text-wine mt-4">{pageTitle}</h1>
         <p className="mt-3 text-text-muted text-lg">
           Choose your venue, catering tier, and the suppliers you need — your Grand Total is revealed when you're
           ready.
@@ -124,6 +138,7 @@ export default function MakeYourOwnPackage() {
           <VenueSection venueId={venueId} onVenueChange={setVenueId} />
 
           <CateringSection
+            eventCategory={eventCategory}
             venueSelected={Boolean(venueZone)}
             pax={pax}
             onPaxChange={setPax}
@@ -136,6 +151,7 @@ export default function MakeYourOwnPackage() {
           />
 
           <SuppliersSection
+            suppliers={suppliers}
             pax={pax}
             selections={selections}
             onToggle={toggleSupplier}
@@ -153,7 +169,6 @@ export default function MakeYourOwnPackage() {
               transportLabel={transportLabel}
               tier={tier}
               pax={pax}
-              isWedding={isWedding}
               beefSwap={beefSwap}
               supplierItems={supplierItems}
               canRequest={canRequest}
@@ -168,7 +183,6 @@ export default function MakeYourOwnPackage() {
             transportLabel={transportLabel}
             tier={tier}
             pax={pax}
-            isWedding={isWedding}
             beefSwap={beefSwap}
             supplierItems={supplierItems}
             canRequest={canRequest}
