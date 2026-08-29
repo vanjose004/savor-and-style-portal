@@ -17,7 +17,7 @@ import VenueSection from '../components/custom-package/VenueSection'
 import CateringSection from '../components/custom-package/CateringSection'
 import SuppliersSection from '../components/custom-package/SuppliersSection'
 import RunningTotalPanel from '../components/custom-package/RunningTotalPanel'
-import PackageDownloadModal from '../components/custom-package/PackageDownloadModal'
+import PackagePreviewModal from '../components/custom-package/PackagePreviewModal'
 
 export default function MakeYourOwnPackage() {
   const [venueId, setVenueId] = useState(null)
@@ -68,7 +68,7 @@ export default function MakeYourOwnPackage() {
   const transportFee = venueZone?.fee ?? 0
   const transportLabel = getTransportLabel(venueZone)
   const cateringPrice = getCateringPrice({ tier, pax, isWedding, beefSwap })
-  const { total: suppliersTotal, labels: supplierLabels } = getSupplierSummary(selections)
+  const { total: suppliersTotal, items: supplierItems } = getSupplierSummary(selections)
   const grandTotal = cateringPrice + suppliersTotal + transportFee + COORDINATION_FEE
   const canRequest = Boolean(venueZone && tier && pax)
 
@@ -79,7 +79,7 @@ export default function MakeYourOwnPackage() {
     pax,
     isWedding,
     beefSwap,
-    supplierLabels,
+    supplierItems,
     grandTotal,
   }
 
@@ -155,7 +155,7 @@ export default function MakeYourOwnPackage() {
               pax={pax}
               isWedding={isWedding}
               beefSwap={beefSwap}
-              supplierLabels={supplierLabels}
+              supplierItems={supplierItems}
               canRequest={canRequest}
               onRequest={() => setModalOpen(true)}
             />
@@ -170,7 +170,7 @@ export default function MakeYourOwnPackage() {
             pax={pax}
             isWedding={isWedding}
             beefSwap={beefSwap}
-            supplierLabels={supplierLabels}
+            supplierItems={supplierItems}
             canRequest={canRequest}
             onRequest={() => setModalOpen(true)}
           />
@@ -192,7 +192,7 @@ export default function MakeYourOwnPackage() {
         </div>
       </div>
 
-      <PackageDownloadModal open={modalOpen} onClose={() => setModalOpen(false)} summary={summary} />
+      <PackagePreviewModal open={modalOpen} onClose={() => setModalOpen(false)} summary={summary} />
     </div>
   )
 }

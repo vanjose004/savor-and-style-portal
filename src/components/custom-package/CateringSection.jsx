@@ -1,7 +1,13 @@
 import { Check } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { cn } from '../../lib/utils'
-import { CATERING_PAX_OPTIONS, CATERING_TIERS } from '../../lib/customPackage'
+import {
+  CATERING_BUNDLED_DISHES,
+  CATERING_EXCLUSION_NOTE,
+  CATERING_INCLUSIONS,
+  CATERING_PAX_OPTIONS,
+  CATERING_TIERS,
+} from '../../lib/customPackage'
 
 export default function CateringSection({
   venueSelected,
@@ -93,7 +99,7 @@ export default function CateringSection({
                 </p>
 
                 <ul className="flex flex-wrap gap-1.5">
-                  {tier.dishes.map((dish) => (
+                  {tier.mainDishes.map((dish) => (
                     <li
                       key={dish}
                       className="text-xs px-2 py-1 rounded-full bg-cream text-text-dark border border-gold/20"
@@ -102,6 +108,7 @@ export default function CateringSection({
                     </li>
                   ))}
                 </ul>
+                <p className="text-xs text-text-muted mt-2">+ {CATERING_BUNDLED_DISHES.join(', ')}</p>
               </button>
 
               {tier.allowsBeefSwap && selected && (
@@ -118,6 +125,19 @@ export default function CateringSection({
             </motion.div>
           )
         })}
+      </div>
+
+      <div className="mt-6 rounded-xl border border-gold/25 bg-warm-white p-4">
+        <p className="text-sm font-semibold text-text-dark mb-2">Included With Every Tier</p>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5">
+          {CATERING_INCLUSIONS.map((item) => (
+            <li key={item} className="flex items-start gap-2 text-sm text-text-dark">
+              <Check className="w-3.5 h-3.5 text-wine mt-0.5 shrink-0" />
+              {item}
+            </li>
+          ))}
+        </ul>
+        <p className="text-xs text-text-muted italic mt-3">{CATERING_EXCLUSION_NOTE}</p>
       </div>
     </section>
   )

@@ -3,9 +3,9 @@ import { Check } from 'lucide-react'
 import { COORDINATION_FEE_LABEL } from '../../lib/customPackage'
 
 // Intentionally shows NO prices at all, not even the grand total — per the
-// page's design, the total is only revealed inside PackageDownloadModal
-// after the client submits their name + event date. This panel is just a
-// names-only recap of what's currently selected.
+// page's design, the total only appears in the PDF preview
+// (PackagePreviewModal) once the client clicks "Create My Package". This
+// panel is just a names-only recap of what's currently selected.
 export default function RunningTotalPanel({
   venueZone,
   transportLabel,
@@ -13,7 +13,7 @@ export default function RunningTotalPanel({
   pax,
   isWedding,
   beefSwap,
-  supplierLabels,
+  supplierItems,
   canRequest,
   onRequest,
 }) {
@@ -50,14 +50,14 @@ export default function RunningTotalPanel({
 
       <div className="mt-4 pb-4 border-b border-white/15">
         <p className="text-xs uppercase tracking-wide text-white/60 mb-2">Add-Ons</p>
-        {supplierLabels.length === 0 ? (
+        {supplierItems.length === 0 ? (
           <p className="text-sm text-white/50 italic">None selected yet</p>
         ) : (
           <ul className="space-y-1.5">
             <AnimatePresence initial={false}>
-              {supplierLabels.map((label) => (
+              {supplierItems.map((item) => (
                 <motion.li
-                  key={label}
+                  key={item.id}
                   initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -8 }}
@@ -65,7 +65,7 @@ export default function RunningTotalPanel({
                   className="flex items-start gap-2 text-sm"
                 >
                   <Check className="w-3.5 h-3.5 text-gold mt-0.5 shrink-0" />
-                  <span>{label}</span>
+                  <span>{item.label}</span>
                 </motion.li>
               ))}
             </AnimatePresence>
@@ -90,7 +90,7 @@ export default function RunningTotalPanel({
         <p className="text-xs text-white/50 mt-2 text-center">Select your venue and catering package to continue</p>
       )}
       {canRequest && (
-        <p className="text-xs text-white/50 mt-2 text-center">Your Grand Total is revealed in the next step</p>
+        <p className="text-xs text-white/50 mt-2 text-center">Preview your full package summary next</p>
       )}
     </div>
   )

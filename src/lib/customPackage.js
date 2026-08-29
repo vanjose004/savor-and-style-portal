@@ -3,8 +3,8 @@
 // tier prices are shown in the UI; supplier prices below are intentionally
 // never rendered — only used to compute the running total — per the page's
 // "hidden per-item pricing" design. Ceiling Treatment is the sole exception
-// (`showPrice: true`) — its price is shown on its card and in the summary
-// because the business wants that one flagged as a "starting rate".
+// (`showPrice: true`) — its price is shown on its card, in the summary, and
+// in the PDF because the business wants that one flagged as a "starting rate".
 
 import { formatCurrency } from './utils'
 
@@ -35,6 +35,25 @@ export const BEEF_SWAP_FEE = 1500
 export const COORDINATION_FEE = 10000
 export const COORDINATION_FEE_LABEL = 'Savor & Style All-In Coordination Fee'
 
+// Every dish in these two lists is bundled into every tier at every pax
+// count — only the named main dishes vary by tier (see CATERING_TIERS).
+export const CATERING_BUNDLED_DISHES = ['Dessert', 'Juice', 'Rice']
+
+// Shown once as "included with every tier" — distinct from Event Stylist's
+// backdrop/arch/couch/red carpet, which are NOT part of catering (see
+// CATERING_EXCLUSION_NOTE below).
+export const CATERING_INCLUSIONS = [
+  'Waiter Service',
+  'Buffet Table & Warmers (Roll-top chafers)',
+  'Tables & Chairs with Cloth',
+  'Cake Table',
+  'Rice, Water & Ice',
+  'Juice served by waiter (not self-serve)',
+]
+
+export const CATERING_EXCLUSION_NOTE =
+  'Backdrop, arch, couch, and red carpet are not included in catering — these are part of the Event Stylist supplier.'
+
 // Matches SOFT_RESERVE_PACKAGES in src/lib/constants.js (the official
 // pricing shown on the main landing page's "Choose Your Package" section) —
 // 150/200 pax are that table's 100-pax price plus its overagePerHead rate
@@ -44,21 +63,21 @@ export const CATERING_TIERS = [
     id: 'bronze',
     name: 'Bronze',
     dishCount: 4,
-    dishes: ['Pork', 'Chicken', 'Veggie', 'Pasta', 'Rice', 'Juice', 'Dessert'],
+    mainDishes: ['Pork', 'Chicken', 'Veggie', 'Pasta'],
     prices: { 50: 25000, 60: 28500, 70: 32000, 80: 36000, 90: 38000, 100: 40000, 150: 60000, 200: 80000 },
   },
   {
     id: 'silver',
     name: 'Silver',
     dishCount: 5,
-    dishes: ['Pork', 'Chicken', 'Fish', 'Veggie', 'Pasta', 'Rice', 'Juice', 'Dessert'],
+    mainDishes: ['Pork', 'Chicken', 'Fish', 'Veggie', 'Pasta'],
     prices: { 50: 28000, 60: 32000, 70: 36000, 80: 40500, 90: 42750, 100: 45000, 150: 67500, 200: 90000 },
   },
   {
     id: 'gold',
     name: 'Gold',
     dishCount: 6,
-    dishes: ['Pork', 'Chicken', 'Fish', 'Veggie', 'Pasta', 'Rice', 'Juice', 'Dessert'],
+    mainDishes: ['Pork', 'Chicken', 'Fish', 'Veggie', 'Pasta'],
     prices: { 50: 32000, 60: 36000, 70: 40000, 80: 45000, 90: 47500, 100: 50000, 150: 75000, 200: 100000 },
     allowsBeefSwap: true,
   },
@@ -71,20 +90,38 @@ export const ESSENTIAL_SUPPLIERS_NOTE =
 
 // `type`:
 //  - 'toggle'  : single on/off, flat `price`
-//  - 'choice'  : mutually-exclusive `options`, pick at most one
+//  - 'choice'  : mutually-exclusive `options` (each with its own `description`), pick at most one
 //  - 'hmua'    : on/off `basePrice` + per-head `extraHeadPrice` counter
 //  - 'quantity': on/off `pricePerUnit` counter, defaults its quantity to the
 //                selected catering pax when first turned on
 export const SUPPLIERS = [
-  { id: 'stylist', label: 'Event Stylist', type: 'toggle', price: 12000, essential: true },
+  {
+    id: 'stylist',
+    label: 'Event Stylist',
+    type: 'toggle',
+    price: 12000,
+    essential: true,
+    description:
+      'Complete event styling including themed backdrop with decorations, entrance arch, elegant couch, red carpet, and full theme coordination.',
+  },
   {
     id: 'photography',
     label: 'Photography',
     type: 'choice',
     options: [
-      { id: 'photo_only', label: 'Photo Only', price: 5000 },
-      { id: 'photo_video', label: 'Photo + Video', price: 12000 },
-      { id: 'photo_video_sde', label: 'Photo + Video + SDE', price: 20000 },
+      { id: 'photo_only', label: 'Photo Only', price: 5000, description: 'Full event photo coverage with edited digital photos.' },
+      {
+        id: 'photo_video',
+        label: 'Photo + Video',
+        price: 12000,
+        description: 'Full event photo and video coverage with edited digital files.',
+      },
+      {
+        id: 'photo_video_sde',
+        label: 'Photo + Video + SDE',
+        price: 20000,
+        description: 'Full coverage plus same-day edit video shown during the reception.',
+      },
     ],
   },
   {
@@ -92,52 +129,96 @@ export const SUPPLIERS = [
     label: 'Pre-nup',
     type: 'choice',
     options: [
-      { id: 'photo_only', label: 'Photo Only', price: 5000 },
-      { id: 'photo_video', label: 'Photo + Video', price: 12000 },
+      { id: 'photo_only', label: 'Photo Only', price: 5000, description: 'Pre-nuptial photo shoot with edited digital photos.' },
+      {
+        id: 'photo_video',
+        label: 'Photo + Video',
+        price: 12000,
+        description: 'Pre-nuptial photo and video coverage with edited digital files.',
+      },
     ],
   },
-  { id: 'sounds_lights', label: 'Sounds & Lights (Basic)', type: 'toggle', price: 6000, essential: true },
-  { id: 'emcee', label: 'Emcee', type: 'toggle', price: 8000, essential: true },
-  { id: 'cake', label: 'Cake (2-tier)', type: 'toggle', price: 6500 },
+  {
+    id: 'sounds_lights',
+    label: 'Sounds & Lights',
+    type: 'toggle',
+    price: 6000,
+    essential: true,
+    description: 'Basic sound system with microphone, speakers, and event lighting setup for the duration of your event.',
+  },
+  {
+    id: 'emcee',
+    label: 'Emcee / Host',
+    type: 'toggle',
+    price: 8000,
+    essential: true,
+    description: 'Professional host to lead and manage your event program from start to finish.',
+  },
+  {
+    id: 'otd_coordinator',
+    label: 'OTD Coordinator',
+    type: 'toggle',
+    price: 8000,
+    description: 'On-the-day coordinator to manage your event timeline, suppliers, and logistics from setup to end of event.',
+  },
+  {
+    id: 'cake',
+    label: 'Cake (2-tier)',
+    type: 'toggle',
+    price: 6500,
+    description: 'Elegant 2-tier themed cake for your celebration.',
+  },
   {
     id: 'flowers',
     label: 'Flowers (Bridal Package)',
     type: 'toggle',
     price: 7000,
-    inclusions: ['Bridal bouquet', 'Groom boutonniere x5', 'Mini bouquet x3'],
+    description: 'Bridal bouquet, 5 groom boutonnieres, and 3 mini bouquets for entourage.',
   },
   {
     id: 'hmua',
     label: 'Hair & Makeup',
     type: 'hmua',
-    baseLabel: 'Bride + Groom + 2 Mothers',
     basePrice: 10000,
     extraHeadPrice: 1500,
+    description: 'Base: Bride/Debut + Groom + 2 mothers. Additional heads available at extra cost.',
   },
-  { id: 'otd_coordinator', label: 'OTD Coordinator', type: 'toggle', price: 8000 },
   {
     id: 'grazing_table',
     label: 'Grazing Table',
     type: 'toggle',
     price: 16000,
-    inclusions: ['100 pax', '7 kakanin station'],
+    description: '7-station kakanin grazing table for 100 pax — perfect for cocktail hour or reception display.',
   },
-  { id: 'mobile_bar', label: 'Mobile Bar', type: 'toggle', price: 18000, inclusions: ['100 pax'] },
+  {
+    id: 'mobile_bar',
+    label: 'Mobile Bar',
+    type: 'toggle',
+    price: 18000,
+    description: 'Full mobile bar setup for 100 pax with bartender and drinks service.',
+  },
   {
     id: 'tiffany_chairs',
     label: 'Tiffany Chair Upgrade',
     type: 'quantity',
     pricePerUnit: 85,
     unitLabel: 'chair',
+    description: 'Elegant Tiffany chairs to replace standard chairs included in package. Quantity auto-set to your selected pax.',
   },
-  { id: 'led_wall', label: 'LED Wall', type: 'toggle', price: 20000 },
+  {
+    id: 'led_wall',
+    label: 'LED Wall',
+    type: 'toggle',
+    price: 20000,
+    description: 'Large LED wall display for event backdrop or program presentations.',
+  },
   {
     id: 'ceiling_treatment',
     label: 'Ceiling Treatment',
     type: 'toggle',
     price: 150000,
     showPrice: true,
-    note: 'Ceiling treatment pricing varies per venue size and design. This is the starting rate.',
+    description: 'Full ceiling draping and treatment. Price starts at ₱150,000 depending on venue size and design.',
   },
 ]
 
@@ -161,10 +242,15 @@ export function getCateringPrice({ tier, pax, isWedding, beefSwap }) {
   return price
 }
 
-/** Supplier subtotal + display labels (names only, no prices) for the summary panel. */
+/**
+ * Supplier subtotal + selected items for display (name + description, no
+ * prices — Ceiling Treatment's label is the sole exception, carrying its
+ * price inline). Consumed by both the running-total panel (label only) and
+ * the PDF preview (label + description).
+ */
 export function getSupplierSummary(selections) {
   let total = 0
-  const labels = []
+  const items = []
 
   for (const supplier of SUPPLIERS) {
     const selection = selections[supplier.id]
@@ -172,32 +258,39 @@ export function getSupplierSummary(selections) {
     if (supplier.type === 'toggle') {
       if (selection) {
         total += supplier.price
-        labels.push(supplier.showPrice ? `${supplier.label} — ${formatCurrency(supplier.price)}` : supplier.label)
+        items.push({
+          id: supplier.id,
+          label: supplier.showPrice ? `${supplier.label} — ${formatCurrency(supplier.price)}` : supplier.label,
+          description: supplier.description,
+        })
       }
     } else if (supplier.type === 'choice') {
       const option = supplier.options.find((o) => o.id === selection)
       if (option) {
         total += option.price
-        labels.push(`${supplier.label} — ${option.label}`)
+        items.push({ id: supplier.id, label: `${supplier.label} — ${option.label}`, description: option.description })
       }
     } else if (supplier.type === 'hmua') {
       if (selection?.enabled) {
         const extraHeads = selection.extraHeads || 0
         total += supplier.basePrice + extraHeads * supplier.extraHeadPrice
-        labels.push(
-          extraHeads > 0
-            ? `${supplier.label} (+${extraHeads} extra head${extraHeads > 1 ? 's' : ''})`
-            : supplier.label
-        )
+        items.push({
+          id: supplier.id,
+          label:
+            extraHeads > 0
+              ? `${supplier.label} (+${extraHeads} extra head${extraHeads > 1 ? 's' : ''})`
+              : supplier.label,
+          description: supplier.description,
+        })
       }
     } else if (supplier.type === 'quantity') {
       const qty = selection?.qty || 0
       if (selection?.enabled && qty > 0) {
         total += supplier.pricePerUnit * qty
-        labels.push(`${supplier.label} (x${qty})`)
+        items.push({ id: supplier.id, label: `${supplier.label} (x${qty})`, description: supplier.description })
       }
     }
   }
 
-  return { total, labels }
+  return { total, items }
 }

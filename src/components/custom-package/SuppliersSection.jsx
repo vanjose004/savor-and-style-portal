@@ -10,7 +10,7 @@ function EssentialBadge() {
   )
 }
 
-function SupplierShell({ label, essential, priceLabel, inclusions, note, children }) {
+function SupplierShell({ label, essential, priceLabel, description, children }) {
   return (
     <div className="rounded-xl border border-gold/25 bg-warm-white p-4">
       <div className="flex items-start justify-between gap-4">
@@ -22,8 +22,7 @@ function SupplierShell({ label, essential, priceLabel, inclusions, note, childre
             </p>
             {essential && <EssentialBadge />}
           </div>
-          {inclusions && <p className="text-xs text-text-muted mt-0.5">{inclusions.join(', ')}</p>}
-          {note && <p className="text-xs text-text-muted mt-1 italic">{note}</p>}
+          {description && <p className="text-xs text-text-muted mt-1">{description}</p>}
         </div>
         {children}
       </div>
@@ -44,7 +43,7 @@ function ToggleButton({ active, onClick }) {
           : 'bg-cream text-text-dark border-gold/30 hover:border-wine/50'
       )}
     >
-      {active ? 'Added' : 'Add'}
+      {active ? 'Remove' : 'Add'}
     </button>
   )
 }
@@ -94,8 +93,7 @@ export default function SuppliersSection({
           key={supplier.id}
           label={supplier.label}
           essential={supplier.essential}
-          inclusions={supplier.inclusions}
-          note={supplier.note}
+          description={supplier.description}
           priceLabel={supplier.showPrice ? formatCurrency(supplier.price) : null}
         >
           <ToggleButton active={selections[supplier.id]} onClick={() => onToggle(supplier.id)} />
@@ -105,6 +103,7 @@ export default function SuppliersSection({
 
     if (supplier.type === 'choice') {
       const selected = selections[supplier.id]
+      const selectedOption = supplier.options.find((o) => o.id === selected)
       return (
         <div key={supplier.id} className="rounded-xl border border-gold/25 bg-warm-white p-4">
           <p className="font-semibold text-text-dark mb-3">{supplier.label}</p>
@@ -129,6 +128,9 @@ export default function SuppliersSection({
               )
             })}
           </div>
+          {selectedOption?.description && (
+            <p className="text-xs text-text-muted mt-2.5">{selectedOption.description}</p>
+          )}
         </div>
       )
     }
@@ -140,7 +142,7 @@ export default function SuppliersSection({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="font-semibold text-text-dark">{supplier.label}</p>
-              <p className="text-xs text-text-muted mt-0.5">{supplier.baseLabel}</p>
+              {supplier.description && <p className="text-xs text-text-muted mt-1">{supplier.description}</p>}
             </div>
             <ToggleButton active={selection.enabled} onClick={() => onHmuaToggle(supplier.id)} />
           </div>
@@ -167,7 +169,7 @@ export default function SuppliersSection({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="font-semibold text-text-dark">{supplier.label}</p>
-              <p className="text-xs text-text-muted mt-0.5">Defaults to your guest count — adjust as needed</p>
+              {supplier.description && <p className="text-xs text-text-muted mt-1">{supplier.description}</p>}
             </div>
             <ToggleButton active={selection.enabled} onClick={() => onQtyToggle(supplier.id, pax)} />
           </div>

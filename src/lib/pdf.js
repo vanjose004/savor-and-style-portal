@@ -11,6 +11,7 @@ import {
   formatFreebie,
 } from './constants'
 import { formatDate, formatTime, formatDateTime } from './utils'
+import { CATERING_BUNDLED_DISHES, CATERING_INCLUSIONS } from './customPackage'
 
 const PAGE_WIDTH = 210
 const PAGE_HEIGHT = 297
@@ -760,8 +761,21 @@ export async function generateCOEPDF(staffMember, purpose) {
 // The "Make Your Own Package" builder (src/pages/MakeYourOwnPackage.jsx)
 // intentionally hides every per-item price in its UI — only the grand total
 // is shown. This PDF carries that same rule through to the client's takeaway
-// file: the only peso figure printed anywhere on the page is the grand total.
-export async function generateCustomPackagePDF({ venueZoneLabel, transportLabel, catering, supplierLabels, grandTotal }) {
+// file: the only peso figure printed anywhere on the page is the grand total
+// (Ceiling Treatment's price is the sole named exception).
+//
+// Returns { doc, filename } instead of saving directly — the caller
+// (PackagePreviewModal) renders `doc.output('bloburl')` in an on-screen
+// preview first, then calls `doc.save(filename)` only once the client
+// clicks "Download PDF".
+export async function buildCustomPackagePDF({
+  eventTypeLabel,
+  venueZoneLabel,
+  transportLabel,
+  catering,
+  supplierItems,
+  grandTotal,
+}) {
   const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
 
@@ -786,20 +800,20 @@ export async function generateCustomPackagePDF({ venueZoneLabel, transportLabel,
   doc.text(`Tel: ${BUSINESS.phone}`, textX, 25.5)
 
   doc.setFont('helvetica', 'bold')
-  doc.setFontSize(15)
+  doc.setFontSize(14)
   doc.setTextColor(...COLOR_GOLD)
-  doc.text('MAKE YOUR OWN PACKAGE', PAGE_WIDTH - MARGIN, 15, { align: 'right' })
+  doc.text(`${eventTypeLabel || 'Wedding'} Package Summary`, PAGE_WIDTH - MARGIN, 15, { align: 'right' })
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(...COLOR_WARM_WHITE)
-  doc.text('Package Summary', PAGE_WIDTH - MARGIN, 22, { align: 'right' })
+  doc.text('Make Your Own Package', PAGE_WIDTH - MARGIN, 22, { align: 'right' })
   doc.text(formatDate(new Date().toISOString().slice(0, 10)), PAGE_WIDTH - MARGIN, 28, { align: 'right' })
 
-  // --- Venue & Transport box --------------------------------------------
+  // --- Event Details box (event type, venue, transport) -----------------
   // No client name/event date collected at this step (client provides
-  // those when they message to confirm) — just venue + transport status.
+  // those when they message to confirm) — just event type + venue + transport.
   let y = BAND_HEIGHT + 12
-  const boxHeight = 24
+  const boxHeight = 30
 
   doc.setFillColor(...COLOR_CREAM)
   doc.roundedRect(MARGIN, y, CONTENT_WIDTH, boxHeight, 2, 2, 'F')
@@ -807,17 +821,18 @@ export async function generateCustomPackagePDF({ venueZoneLabel, transportLabel,
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(...COLOR_WINE)
-  doc.text('VENUE & TRANSPORT', MARGIN + 5, y + 7)
+  doc.text('EVENT DETAILS', MARGIN + 5, y + 7)
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   doc.setTextColor(...COLOR_TEXT_DARK)
-  doc.text(venueZoneLabel || '—', MARGIN + 5, y + 15)
+  doc.text(eventTypeLabel || '—', MARGIN + 5, y + 15)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...COLOR_TEXT_MUTED)
-  doc.text(transportLabel || '', MARGIN + 5, y + 20.5)
+  doc.text(venueZoneLabel || '—', MARGIN + 5, y + 20.5)
+  doc.text(transportLabel || '', MARGIN + 5, y + 25.5)
 
   y += boxHeight + 10
 
@@ -837,6 +852,14 @@ export async function generateCustomPackagePDF({ venueZoneLabel, transportLabel,
     y
   )
   y += 5
+
+  if (catering) {
+    const dishList = [...(catering.mainDishes || []), ...CATERING_BUNDLED_DISHES]
+    doc.splitTextToSize(`Dishes: ${dishList.join(', ')}`, CONTENT_WIDTH).forEach((line) => {
+      doc.text(line, MARGIN, y)
+      y += 5
+    })
+  }
   if (catering?.wedding) {
     doc.text('•  Wedding Rate Applied', MARGIN, y)
     y += 5
@@ -844,6 +867,24 @@ export async function generateCustomPackagePDF({ venueZoneLabel, transportLabel,
   if (catering?.beefSwap) {
     doc.text('•  Beef Dish Swap Included', MARGIN, y)
     y += 5
+  }
+
+  if (catering) {
+    y += 2
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8.5)
+    doc.setTextColor(...COLOR_WINE)
+    doc.text('Included With Every Tier:', MARGIN, y)
+    y += 5
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(...COLOR_TEXT_DARK)
+    CATERING_INCLUSIONS.forEach((item) => {
+      doc.splitTextToSize(`•  ${item}`, CONTENT_WIDTH).forEach((line) => {
+        doc.text(line, MARGIN, y)
+        y += 4.8
+      })
+    })
   }
 
   // --- Selected Add-Ons -------------------------------------------------
@@ -854,27 +895,42 @@ export async function generateCustomPackagePDF({ venueZoneLabel, transportLabel,
   doc.text('SELECTED ADD-ONS', MARGIN, y)
   y += 6
 
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9.5)
-  doc.setTextColor(...COLOR_TEXT_DARK)
-  if (!supplierLabels || supplierLabels.length === 0) {
+  if (!supplierItems || supplierItems.length === 0) {
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(9.5)
+    doc.setTextColor(...COLOR_TEXT_DARK)
     doc.text('No add-ons selected.', MARGIN, y)
     y += 5
   } else {
-    // supplierLabels come from getSupplierSummary() and use formatCurrency()
-    // (₱) for display in the browser — jsPDF's standard font can't render
-    // that glyph and corrupts the whole line's spacing, so swap it for the
-    // "PHP "-prefixed style used everywhere else in this file.
-    supplierLabels.forEach((label) => {
-      const pdfSafeLabel = label.replace(/₱/g, 'PHP ')
+    supplierItems.forEach((item) => {
+      if (y > PAGE_HEIGHT - MARGIN - 60) {
+        doc.addPage()
+        y = MARGIN
+      }
+      // Labels and descriptions can carry a ₱ (from formatCurrency() in the
+      // browser, or written directly into a supplier's description) — jsPDF's
+      // standard font can't render that glyph and corrupts the whole line's
+      // spacing, so swap it for the "PHP "-prefixed style used everywhere
+      // else in this file.
+      const pdfSafeLabel = item.label.replace(/₱/g, 'PHP ')
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9.5)
+      doc.setTextColor(...COLOR_TEXT_DARK)
       doc.splitTextToSize(`•  ${pdfSafeLabel}`, CONTENT_WIDTH).forEach((line) => {
-        if (y > PAGE_HEIGHT - MARGIN - 60) {
-          doc.addPage()
-          y = MARGIN
-        }
         doc.text(line, MARGIN, y)
         y += 5
       })
+      if (item.description) {
+        const pdfSafeDescription = item.description.replace(/₱/g, 'PHP ')
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8.5)
+        doc.setTextColor(...COLOR_TEXT_MUTED)
+        doc.splitTextToSize(pdfSafeDescription, CONTENT_WIDTH - 6).forEach((line) => {
+          doc.text(line, MARGIN + 6, y)
+          y += 4.5
+        })
+      }
+      y += 1.5
     })
   }
 
@@ -939,5 +995,5 @@ export async function generateCustomPackagePDF({ venueZoneLabel, transportLabel,
   doc.text(`${BUSINESS.name}  •  ${BUSINESS.facebookUrl}`, PAGE_WIDTH / 2, y, { align: 'center' })
 
   const today = new Date().toISOString().slice(0, 10)
-  doc.save(`SavorAndStyle_Package_Summary_${today}.pdf`)
+  return { doc, filename: `SavorAndStyle_Package_Summary_${today}.pdf` }
 }
