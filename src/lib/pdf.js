@@ -761,15 +761,7 @@ export async function generateCOEPDF(staffMember, purpose) {
 // intentionally hides every per-item price in its UI — only the grand total
 // is shown. This PDF carries that same rule through to the client's takeaway
 // file: the only peso figure printed anywhere on the page is the grand total.
-export async function generateCustomPackagePDF({
-  clientName,
-  eventDate,
-  venueZoneLabel,
-  transportLabel,
-  catering,
-  supplierLabels,
-  grandTotal,
-}) {
+export async function generateCustomPackagePDF({ venueZoneLabel, transportLabel, catering, supplierLabels, grandTotal }) {
   const logo = await loadLogo()
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
 
@@ -803,33 +795,29 @@ export async function generateCustomPackagePDF({
   doc.text('Package Summary', PAGE_WIDTH - MARGIN, 22, { align: 'right' })
   doc.text(formatDate(new Date().toISOString().slice(0, 10)), PAGE_WIDTH - MARGIN, 28, { align: 'right' })
 
-  // --- Prepared For / Event Details boxes -----------------------------
+  // --- Venue & Transport box --------------------------------------------
+  // No client name/event date collected at this step (client provides
+  // those when they message to confirm) — just venue + transport status.
   let y = BAND_HEIGHT + 12
-  const boxHeight = 30
-  const colWidth = (CONTENT_WIDTH - 8) / 2
-  const rightX = MARGIN + colWidth + 8
+  const boxHeight = 24
 
   doc.setFillColor(...COLOR_CREAM)
-  doc.roundedRect(MARGIN, y, colWidth, boxHeight, 2, 2, 'F')
-  doc.roundedRect(rightX, y, colWidth, boxHeight, 2, 2, 'F')
+  doc.roundedRect(MARGIN, y, CONTENT_WIDTH, boxHeight, 2, 2, 'F')
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(8)
   doc.setTextColor(...COLOR_WINE)
-  doc.text('PREPARED FOR', MARGIN + 5, y + 7)
-  doc.text('EVENT DETAILS', rightX + 5, y + 7)
+  doc.text('VENUE & TRANSPORT', MARGIN + 5, y + 7)
 
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(11)
   doc.setTextColor(...COLOR_TEXT_DARK)
-  doc.text(clientName || '—', MARGIN + 5, y + 15)
-  doc.text(venueZoneLabel || '—', rightX + 5, y + 15)
+  doc.text(venueZoneLabel || '—', MARGIN + 5, y + 15)
 
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8.5)
   doc.setTextColor(...COLOR_TEXT_MUTED)
-  doc.text(formatDate(eventDate), rightX + 5, y + 21)
-  doc.text(transportLabel || '', rightX + 5, y + 26)
+  doc.text(transportLabel || '', MARGIN + 5, y + 20.5)
 
   y += boxHeight + 10
 
@@ -935,7 +923,8 @@ export async function generateCustomPackagePDF({
   doc.setTextColor(...COLOR_WINE)
   doc
     .splitTextToSize(
-      `To confirm this package, send this to us on Facebook Messenger or call/text: ${BUSINESS.phone}`,
+      `To confirm this package, send this to us on Facebook Messenger (with your name and event date) ` +
+        `or call/text: ${BUSINESS.phone}`,
       CONTENT_WIDTH
     )
     .forEach((line) => {
@@ -949,6 +938,6 @@ export async function generateCustomPackagePDF({
   doc.setTextColor(...COLOR_TEXT_MUTED)
   doc.text(`${BUSINESS.name}  •  ${BUSINESS.facebookUrl}`, PAGE_WIDTH / 2, y, { align: 'center' })
 
-  const safeClientName = (clientName || 'Client').trim().replace(/\s+/g, '_')
-  doc.save(`SavorAndStyle_Package_${safeClientName}_${eventDate}.pdf`)
+  const today = new Date().toISOString().slice(0, 10)
+  doc.save(`SavorAndStyle_Package_Summary_${today}.pdf`)
 }
