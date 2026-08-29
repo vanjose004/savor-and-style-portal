@@ -134,7 +134,6 @@ export default function MakeYourOwnPackage() {
               pax={pax}
               isWedding={isWedding}
               beefSwap={beefSwap}
-              cateringPrice={cateringPrice}
               supplierLabels={supplierLabels}
               grandTotal={grandTotal}
               canRequest={canRequest}
@@ -149,7 +148,6 @@ export default function MakeYourOwnPackage() {
             pax={pax}
             isWedding={isWedding}
             beefSwap={beefSwap}
-            cateringPrice={cateringPrice}
             supplierLabels={supplierLabels}
             grandTotal={grandTotal}
             canRequest={canRequest}

@@ -1,14 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check } from 'lucide-react'
 import { formatCurrency } from '../../lib/utils'
-import { COORDINATION_FEE, COORDINATION_FEE_LABEL, WEDDING_RATE_ADDON } from '../../lib/customPackage'
+import { COORDINATION_FEE_LABEL } from '../../lib/customPackage'
 
 export default function RunningTotalPanel({
   tier,
   pax,
   isWedding,
   beefSwap,
-  cateringPrice,
   supplierLabels,
   grandTotal,
   canRequest,
@@ -25,9 +24,8 @@ export default function RunningTotalPanel({
             <p className="font-semibold mt-1">
               {tier.name} Package — {pax} pax
             </p>
-            {isWedding && <p className="text-xs text-white/70">Wedding rate (+{formatCurrency(WEDDING_RATE_ADDON)})</p>}
+            {isWedding && <p className="text-xs text-white/70">Wedding rate applied</p>}
             {beefSwap && <p className="text-xs text-white/70">Beef dish swap</p>}
-            <p className="text-gold font-bold mt-1.5">{formatCurrency(cateringPrice)}</p>
           </>
         ) : (
           <p className="text-sm text-white/60 mt-1">Select a guest count and tier to get started.</p>
@@ -61,7 +59,7 @@ export default function RunningTotalPanel({
 
       <div className="flex items-center justify-between text-sm py-1">
         <span className="text-white/80">{COORDINATION_FEE_LABEL}</span>
-        <span className="font-medium text-gold">{formatCurrency(COORDINATION_FEE)}</span>
+        <span className="font-medium text-gold">Included</span>
       </div>
 
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-gold/30">

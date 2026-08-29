@@ -8,34 +8,38 @@
 
 import { formatCurrency } from './utils'
 
-export const CATERING_PAX_OPTIONS = [50, 60, 70, 100, 150, 200]
+export const CATERING_PAX_OPTIONS = [50, 60, 70, 80, 90, 100, 150, 200]
 
 export const WEDDING_RATE_ADDON = 5000
 export const BEEF_SWAP_FEE = 1500
 export const COORDINATION_FEE = 10000
 export const COORDINATION_FEE_LABEL = 'Savor & Style All-In Coordination Fee'
 
+// Matches SOFT_RESERVE_PACKAGES in src/lib/constants.js (the official
+// pricing shown on the main landing page's "Choose Your Package" section) —
+// 150/200 pax are that table's 100-pax price plus its overagePerHead rate
+// (Bronze ₱400/pax, Silver ₱450/pax, Gold ₱500/pax) times the excess pax.
 export const CATERING_TIERS = [
   {
     id: 'bronze',
     name: 'Bronze',
     dishCount: 4,
     dishes: ['Pork', 'Chicken', 'Veggie', 'Pasta', 'Rice', 'Juice', 'Dessert'],
-    prices: { 50: 22000, 60: 25000, 70: 28000, 100: 40000, 150: 55000, 200: 70000 },
+    prices: { 50: 25000, 60: 28500, 70: 32000, 80: 36000, 90: 38000, 100: 40000, 150: 60000, 200: 80000 },
   },
   {
     id: 'silver',
     name: 'Silver',
     dishCount: 5,
     dishes: ['Pork', 'Chicken', 'Fish', 'Veggie', 'Pasta', 'Rice', 'Juice', 'Dessert'],
-    prices: { 50: 25000, 60: 29000, 70: 32000, 100: 43500, 150: 60000, 200: 76000 },
+    prices: { 50: 28000, 60: 32000, 70: 36000, 80: 40500, 90: 42750, 100: 45000, 150: 67500, 200: 90000 },
   },
   {
     id: 'gold',
     name: 'Gold',
     dishCount: 6,
     dishes: ['Pork', 'Chicken', 'Fish', 'Veggie', 'Pasta', 'Rice', 'Juice', 'Dessert'],
-    prices: { 50: 29000, 60: 33000, 70: 37000, 100: 52000, 150: 68000, 200: 85000 },
+    prices: { 50: 32000, 60: 36000, 70: 40000, 80: 45000, 90: 47500, 100: 50000, 150: 75000, 200: 100000 },
     allowsBeefSwap: true,
   },
 ]
