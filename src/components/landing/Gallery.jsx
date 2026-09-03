@@ -44,6 +44,8 @@ export default function Gallery() {
                 <img
                   src={item.src}
                   alt={OVERLAY_LABEL}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-wine/0 group-hover:bg-wine/60 transition-colors duration-300 flex items-center justify-center">

@@ -155,6 +155,9 @@ export default function Gallery() {
                       src={photo.url}
                       alt={photo.caption ?? photo.category}
                       loading="lazy"
+                      decoding="async"
+                      width={photo.width || undefined}
+                      height={photo.height || undefined}
                       className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                     {photo.caption && (

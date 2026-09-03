@@ -75,6 +75,7 @@ export default function Lightbox({ photos, index, onClose, onNavigate }) {
           <img
             src={photo.url}
             alt={photo.caption ?? photo.category}
+            decoding="async"
             className="max-w-full max-h-[75vh] object-contain rounded-lg shadow-2xl"
           />
           <div className="mt-3 text-center">

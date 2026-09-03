@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import imageCompression from 'browser-image-compression'
 import { Image as ImageIcon, Upload, Trash2, X } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
@@ -13,18 +14,42 @@ import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
 import Modal from '../../components/ui/Modal'
 
-const STORAGE_PUBLIC_MARKER = '/storage/v1/object/public/gallery/'
+// Applied to every photo before it ever leaves the browser — R2 has no
+// egress fee, but an uncompressed multi-MB camera photo still costs the
+// *visitor* bandwidth and slows the public gallery page down. 2000px on the
+// long edge is plenty for both the grid and the lightbox's max-h-[75vh] view.
+const COMPRESSION_OPTIONS = { maxSizeMB: 1.5, maxWidthOrHeight: 2000, useWebWorker: true, initialQuality: 0.82 }
 
-function buildStoragePath(category, filename) {
-  const ext = filename.includes('.') ? filename.slice(filename.lastIndexOf('.')) : ''
-  const slug = category.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'others'
-  return `${slug}/${crypto.randomUUID()}${ext}`
+function getImageDimensions(file) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    const objectUrl = URL.createObjectURL(file)
+    img.onload = () => {
+      resolve({ width: img.naturalWidth, height: img.naturalHeight })
+      URL.revokeObjectURL(objectUrl)
+    }
+    img.onerror = () => {
+      resolve({ width: null, height: null })
+      URL.revokeObjectURL(objectUrl)
+    }
+    img.src = objectUrl
+  })
 }
 
-function storagePathFromUrl(url) {
-  const idx = url.indexOf(STORAGE_PUBLIC_MARKER)
-  if (idx === -1) return null
-  return decodeURIComponent(url.slice(idx + STORAGE_PUBLIC_MARKER.length))
+/** Presigns + uploads directly to R2 (see api/gallery-presign-upload.js) — the file's bytes never touch our server. */
+async function uploadToR2(file, category, accessToken) {
+  const presignRes = await fetch('/api/gallery-presign-upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ category, filename: file.name, contentType: file.type }),
+  })
+  if (!presignRes.ok) throw new Error((await presignRes.json().catch(() => ({}))).error || 'Failed to get upload URL')
+  const { key, uploadUrl, publicUrl } = await presignRes.json()
+
+  const putRes = await fetch(uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file })
+  if (!putRes.ok) throw new Error('Upload to storage failed')
+
+  return { key, publicUrl }
 }
 
 export default function AdminGallery() {
@@ -98,31 +123,31 @@ export default function AdminGallery() {
     setUploading(true)
     const failed = []
 
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const accessToken = session?.access_token
+
     for (const item of pending) {
-      const path = buildStoragePath(item.category, item.file.name)
-      const { error: uploadError } = await supabase.storage.from('gallery').upload(path, item.file, {
-        cacheControl: '3600',
-        upsert: false,
-      })
+      try {
+        const compressed = await imageCompression(item.file, COMPRESSION_OPTIONS)
+        const { width, height } = await getImageDimensions(compressed)
+        const { key, publicUrl } = await uploadToR2(compressed, item.category, accessToken)
 
-      if (uploadError) {
+        const { error: insertError } = await supabase.from('gallery_photos').insert({
+          url: publicUrl,
+          storage_key: key,
+          width,
+          height,
+          category: item.category,
+          caption: item.caption.trim() || null,
+        })
+        if (insertError) throw insertError
+
+        URL.revokeObjectURL(item.previewUrl)
+      } catch {
         failed.push(item)
-        continue
       }
-
-      const { data: urlData } = supabase.storage.from('gallery').getPublicUrl(path)
-      const { error: insertError } = await supabase.from('gallery_photos').insert({
-        url: urlData.publicUrl,
-        category: item.category,
-        caption: item.caption.trim() || null,
-      })
-
-      if (insertError) {
-        failed.push(item)
-        continue
-      }
-
-      URL.revokeObjectURL(item.previewUrl)
     }
 
     setUploading(false)
@@ -144,9 +169,15 @@ export default function AdminGallery() {
     if (!deleteTarget) return
     setDeleting(true)
 
-    const path = storagePathFromUrl(deleteTarget.url)
-    if (path) {
-      await supabase.storage.from('gallery').remove([path])
+    if (deleteTarget.storage_key) {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      await fetch('/api/gallery-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+        body: JSON.stringify({ key: deleteTarget.storage_key }),
+      }).catch(() => {})
     }
 
     const { error } = await supabase.from('gallery_photos').delete().eq('id', deleteTarget.id)
