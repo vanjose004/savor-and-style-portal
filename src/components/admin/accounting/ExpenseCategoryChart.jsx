@@ -2,21 +2,19 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recha
 import { formatCurrency } from '../../../lib/utils'
 
 // Recharts needs literal color values (SVG fill/style props, not Tailwind
-// classes), so this can't read the --color-* custom properties the rest of
-// the admin theme uses — these are the admin night-sky palette's hex
-// values, hardcoded here on purpose. Admin-only file (accounting), never
-// rendered on client-facing pages.
+// classes), so this can't read the --color-* custom properties directly —
+// these are the brand palette's hex values, hardcoded here on purpose.
 const COLORS = [
-  '#d4a843', // gold
-  '#8c93b8', // soft blue-gray
-  '#e0b74f', // bright gold
-  '#c9932c', // warm gold
-  '#e8a0a0', // dusty rose
-  '#6b7aa8', // steel blue
-  '#d9a441', // amber
-  '#a8785c', // copper
-  '#4a5578', // deep indigo
-  '#f2e6c9', // warm cream
+  '#722F37', // wine
+  '#C9A84C', // gold
+  '#2D6A4F', // success
+  '#B5770D', // warning
+  '#8B1A1A', // danger
+  '#4A1A20', // wine-dark
+  '#6B6B6B', // muted
+  '#A8C3B5',
+  '#D9B8BC',
+  '#E8D9A0',
 ]
 
 /** Expense breakdown pie chart by category. `data` is an array of { name, value }. */

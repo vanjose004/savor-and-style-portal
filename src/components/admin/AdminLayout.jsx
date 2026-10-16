@@ -72,19 +72,14 @@ export default function AdminLayout() {
     <div className="admin-shell min-h-screen flex bg-cream">
       <aside
         className={cn(
-          // The sidebar deliberately uses the page-background/primary-text
-          // pair (bg-cream/text-text-dark) rather than bg-wine/text-warm-white
-          // — with wine now mapped to gold, a full-height gold panel would
-          // read as "gold sidebar app," not "night sky with gold accents."
-          'fixed inset-y-0 left-0 z-40 w-64 bg-cream text-text-dark border-r border-gold/10 flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static',
+          'fixed inset-y-0 left-0 z-40 w-64 bg-warm-white text-text-dark border-r border-gold/10 flex flex-col transform transition-transform duration-200 lg:translate-x-0 lg:static',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Flat gold top accent (was a crimson/gold/holly gradient) */}
-        <div className="h-[2px] shrink-0 bg-gold" aria-hidden="true" />
+        <div className="h-[2px] shrink-0 bg-wine" aria-hidden="true" />
 
         <div className="px-6 py-5 border-b border-gold/10 flex items-center gap-3">
-          <Logo className="w-10 h-10 text-gold shrink-0" />
+          <Logo className="w-10 h-10 text-wine shrink-0" />
           <div>
             <h1 className="font-heading text-xl font-bold leading-tight">Savor and Style</h1>
             <p className="text-xs text-text-muted mt-1">{BUSINESS.displayLocation}</p>
@@ -101,8 +96,8 @@ export default function AdminLayout() {
                 cn(
                   'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-gold/15 text-gold'
-                    : 'text-text-muted hover:bg-gold/10 hover:text-text-dark'
+                    ? 'bg-wine/10 text-wine'
+                    : 'text-text-muted hover:bg-wine/5 hover:text-wine'
                 )
               }
             >
@@ -115,7 +110,7 @@ export default function AdminLayout() {
         <div className="px-3 py-4 border-t border-gold/10">
           <button
             onClick={handleSignOut}
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-muted hover:bg-gold/10 hover:text-text-dark w-full transition-colors"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-muted hover:bg-wine/5 hover:text-wine w-full transition-colors"
           >
             <LogOut className="w-4 h-4" />
             Log Out
