@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Plus, Trash2, Users, Download, ClipboardPaste } from 'lucide-react'
+import { Plus, Trash2, Users, Download, ClipboardPaste, Link2, Copy, Check } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { PORTAL_GUEST_SIDE_GROUPS, PORTAL_GUEST_RSVP_STATUSES, PORTAL_GUEST_RSVP_LABELS } from '../../lib/constants'
@@ -54,6 +54,8 @@ export default function Guests() {
   const [showBulkAdd, setShowBulkAdd] = useState(false)
   const [bulkText, setBulkText] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [rsvpSettings, setRsvpSettings] = useState(null)
+  const [copied, setCopied] = useState(false)
   const {
     register,
     handleSubmit,
@@ -83,6 +85,12 @@ export default function Guests() {
       }
       setBookingId(current.id)
       setPax(current.pax)
+      const { data: settings } = await supabase
+        .from('booking_portal_settings')
+        .select('rsvp_public_enabled, rsvp_slug')
+        .eq('booking_id', current.id)
+        .maybeSingle()
+      if (!cancelled) setRsvpSettings(settings ?? { rsvp_public_enabled: false, rsvp_slug: null })
       await loadGuests(current.id)
       if (!cancelled) setLoading(false)
     }
@@ -92,6 +100,23 @@ export default function Guests() {
       cancelled = true
     }
   }, [])
+
+  const toggleRsvp = async () => {
+    const enabling = !rsvpSettings.rsvp_public_enabled
+    const slug = rsvpSettings.rsvp_slug ?? crypto.randomUUID().slice(0, 8)
+    const { error } = await supabase.rpc('client_set_rsvp', { p_enabled: enabling, p_slug: slug })
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+    setRsvpSettings({ rsvp_public_enabled: enabling, rsvp_slug: slug })
+  }
+
+  const copyRsvpLink = async () => {
+    await navigator.clipboard.writeText(`${window.location.origin}/rsvp/${rsvpSettings.rsvp_slug}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const onAddOne = async (values) => {
     setSubmitting(true)
@@ -159,6 +184,29 @@ export default function Guests() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-2 text-sm text-text-dark">
+            <Link2 className="w-4 h-4 text-wine" />
+            Public RSVP Link
+          </div>
+          <label className="flex items-center gap-2 text-xs text-text-muted">
+            <input type="checkbox" checked={!!rsvpSettings?.rsvp_public_enabled} onChange={toggleRsvp} />
+            Enabled
+          </label>
+        </div>
+        {rsvpSettings?.rsvp_public_enabled && (
+          <div className="flex items-center gap-2 mb-4">
+            <p className="text-xs text-text-muted bg-cream rounded-lg px-3 py-2 flex-1 truncate">
+              {window.location.origin}/rsvp/{rsvpSettings.rsvp_slug}
+            </p>
+            <Button size="sm" variant="secondary" onClick={copyRsvpLink}>
+              {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            </Button>
+          </div>
+        )}
+      </Card>
+
       <Card>
         <div className="flex items-center justify-between gap-3 mb-4">
           <h2 className="font-heading font-bold text-lg text-wine">Guest List</h2>

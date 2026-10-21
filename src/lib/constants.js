@@ -234,6 +234,91 @@ export const WEDDING_PROGRAM_TEMPLATE = [
   { segment: 'Send-off', duration_min: 10 },
 ]
 
+// Wedding Client Portal Phase 3 — mood board, seating, requirements,
+// songs, add-ons (20260101000040_wedding_portal_phase3.sql).
+
+export const MOOD_BOARD_STATUSES = ['draft', 'submitted', 'approved', 'revision_requested']
+
+export const MOOD_BOARD_STATUS_LABELS = {
+  draft: 'Draft',
+  submitted: 'Submitted for Review',
+  approved: 'Approved',
+  revision_requested: 'Revision Requested',
+}
+
+export const WEDDING_THEME_PRESETS = [
+  'Rustic',
+  'Elegant White & Gold',
+  'Garden',
+  'Boho',
+  'Modern Minimalist',
+  'Classic Romantic',
+  'Beach',
+  'Vintage',
+]
+
+export const SEATING_TABLE_TYPES = ['regular', 'couple', 'family', 'sponsors', 'kids']
+
+export const SEATING_TABLE_TYPE_LABELS = {
+  regular: 'Regular',
+  couple: "Couple's Table",
+  family: 'Family',
+  sponsors: 'Sponsors',
+  kids: 'Kids Table',
+}
+
+export const PORTAL_REQUIREMENT_STATUSES = ['not_started', 'processing', 'submitted', 'done']
+
+export const PORTAL_REQUIREMENT_STATUS_LABELS = {
+  not_started: 'Not Started',
+  processing: 'Processing',
+  submitted: 'Submitted',
+  done: 'Done',
+}
+
+// Keyed by the same "variant" the client picks on the Requirements page.
+export const WEDDING_REQUIREMENTS_TEMPLATES = {
+  church: [
+    { title: 'Baptismal Certificate (for marriage, recent issue)', where_to_get: 'Parish where baptized' },
+    { title: 'Confirmation Certificate', where_to_get: 'Parish where confirmed' },
+    { title: 'PSA Birth Certificate (both)', where_to_get: 'PSA / local civil registrar' },
+    { title: 'PSA CENOMAR (both)', where_to_get: 'PSA' },
+    { title: 'Marriage License', where_to_get: 'Local Civil Registrar' },
+    { title: 'Pre-Cana / Marriage Preparation Seminar Certificate', where_to_get: 'Parish or Diocese' },
+    { title: 'Canonical Interview', where_to_get: 'Officiating parish' },
+    { title: 'Marriage Banns Posted (both parishes)', where_to_get: 'Both parishes' },
+    { title: 'List of Sponsors', where_to_get: '—' },
+    { title: 'Permit/Letter if marrying outside home parish', where_to_get: 'Home parish' },
+  ],
+  civil: [
+    { title: 'PSA Birth Certificates (both)', where_to_get: 'PSA' },
+    { title: 'PSA CENOMAR (both)', where_to_get: 'PSA' },
+    { title: 'Valid IDs (both)', where_to_get: '—' },
+    { title: 'Marriage License Application', where_to_get: 'Local Civil Registrar' },
+    { title: 'Pre-Marriage Counseling / Family Planning Seminar', where_to_get: 'City/Municipal Health Office' },
+    { title: 'Parental Consent (if 18–21) / Parental Advice (if 21–25)', where_to_get: '—' },
+    { title: 'Judge/Mayor Schedule', where_to_get: 'Local Civil Registrar' },
+  ],
+}
+
+export const PORTAL_SONG_SEGMENTS = [
+  'Processional',
+  'Bridal Entrance',
+  'First Dance',
+  'Cake Cutting',
+  'Background / Dinner',
+  'Party',
+]
+
+export const ADDON_REQUEST_STATUSES = ['requested', 'quoted', 'accepted', 'declined']
+
+export const ADDON_REQUEST_STATUS_LABELS = {
+  requested: 'Requested',
+  quoted: 'Quoted',
+  accepted: 'Accepted',
+  declined: 'Declined',
+}
+
 export const STAFF_ROLES = ['waiter', 'team_leader', 'cook', 'driver']
 
 export const CHECKLIST_CATEGORIES = ['setup', 'food_prep', 'equipment', 'service', 'cleanup']

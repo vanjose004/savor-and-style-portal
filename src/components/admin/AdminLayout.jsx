@@ -19,6 +19,7 @@ import {
   Image as ImageIcon,
   MessageCircle,
   MessageSquare,
+  Sparkles,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { BUSINESS } from '../../lib/constants'
@@ -39,6 +40,7 @@ const NAV_ITEMS = [
   { to: '/admin/attendance', label: 'Attendance', icon: QrCode },
   { to: '/admin/payroll', label: 'Payroll', icon: Wallet },
   { to: '/admin/menu', label: 'Menu', icon: UtensilsCrossed },
+  { to: '/admin/addon-catalog', label: 'Add-On Catalog', icon: Sparkles },
   { to: '/admin/accounting', label: 'Accounting', icon: PiggyBank },
   { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
   { to: '/admin/chatbot-settings', label: 'Chatbot Settings', icon: MessageCircle },

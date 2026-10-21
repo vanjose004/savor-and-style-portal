@@ -14,6 +14,14 @@ import {
   Crown,
   ListOrdered,
   UtensilsCrossed,
+  Palette,
+  LayoutGrid,
+  FileCheck,
+  Music,
+  Sparkles,
+  Gift,
+  Image as ImageIcon,
+  Star,
 } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useClientMembership } from '../../hooks/useClientMembership'
@@ -33,8 +41,16 @@ const NAV_ITEMS = [
   { to: '/my-event/entourage', label: 'Entourage', icon: Crown, module: 'entourage' },
   { to: '/my-event/program', label: 'Program', icon: ListOrdered, module: 'program' },
   { to: '/my-event/menu', label: 'Menu', icon: UtensilsCrossed, module: 'menu' },
+  { to: '/my-event/styling', label: 'Styling', icon: Palette, module: 'moodboard' },
+  { to: '/my-event/seating', label: 'Seating', icon: LayoutGrid, module: 'seating' },
+  { to: '/my-event/requirements', label: 'Requirements', icon: FileCheck, module: 'requirements' },
+  { to: '/my-event/songs', label: 'Songs', icon: Music, module: 'songs' },
+  { to: '/my-event/add-ons', label: 'Add-Ons', icon: Sparkles, module: 'addons' },
+  { to: '/my-event/gifts', label: 'Gifts', icon: Gift, module: 'gifts' },
   { to: '/my-event/documents', label: 'Documents', icon: FileText, module: 'documents' },
   { to: '/my-event/messages', label: 'Messages', icon: MessageSquare, module: 'messages' },
+  { to: '/my-event/gallery', label: 'Gallery', icon: ImageIcon, module: 'gallery' },
+  { to: '/my-event/feedback', label: 'Feedback', icon: Star, module: 'feedback' },
 ]
 
 export default function ClientPortalLayout() {

@@ -30,6 +30,7 @@ import AdminPayroll from './pages/admin/AdminPayroll'
 import AdminPayrollDetail from './pages/admin/AdminPayrollDetail'
 import Reports from './pages/admin/Reports'
 import Settings from './pages/admin/Settings'
+import AddonCatalog from './pages/admin/AddonCatalog'
 import AccountingLayout from './components/admin/accounting/AccountingLayout'
 import AccountingDashboard from './pages/admin/accounting/AccountingDashboard'
 import AccountingIncome from './pages/admin/accounting/Income'
@@ -66,6 +67,15 @@ import ClientVendors from './pages/client-portal/Vendors'
 import ClientEntourage from './pages/client-portal/Entourage'
 import ClientProgram from './pages/client-portal/Program'
 import ClientMenu from './pages/client-portal/Menu'
+import ClientMoodBoard from './pages/client-portal/MoodBoard'
+import ClientSeating from './pages/client-portal/Seating'
+import ClientRequirements from './pages/client-portal/Requirements'
+import ClientSongs from './pages/client-portal/Songs'
+import ClientAddOns from './pages/client-portal/AddOns'
+import ClientGifts from './pages/client-portal/Gifts'
+import ClientEventGallery from './pages/client-portal/EventGallery'
+import ClientFeedback from './pages/client-portal/Feedback'
+import RsvpPublic from './pages/RsvpPublic'
 import BookingRequest from './pages/BookingRequest'
 import HomeCheckin from './pages/HomeCheckin'
 import EventCheckin from './pages/EventCheckin'
@@ -141,6 +151,7 @@ function App() {
                 <Route path="/admin/payroll/:reportId" element={<AdminPayrollDetail />} />
                 <Route path="/admin/reports" element={<Reports />} />
                 <Route path="/admin/settings" element={<Settings />} />
+                <Route path="/admin/addon-catalog" element={<AddonCatalog />} />
                 <Route path="/admin/accounting" element={<AccountingLayout />}>
                   <Route index element={<AccountingDashboard />} />
                   <Route path="income" element={<AccountingIncome />} />
@@ -180,6 +191,7 @@ function App() {
             </Route>
 
             <Route path="/booking/:access_token" element={<ClientPortal />} />
+            <Route path="/rsvp/:slug" element={<RsvpPublic />} />
 
             <Route path="/my-event/login" element={<ClientPortalLogin />} />
 
@@ -194,8 +206,16 @@ function App() {
                 <Route path="/my-event/entourage" element={<ClientEntourage />} />
                 <Route path="/my-event/program" element={<ClientProgram />} />
                 <Route path="/my-event/menu" element={<ClientMenu />} />
+                <Route path="/my-event/styling" element={<ClientMoodBoard />} />
+                <Route path="/my-event/seating" element={<ClientSeating />} />
+                <Route path="/my-event/requirements" element={<ClientRequirements />} />
+                <Route path="/my-event/songs" element={<ClientSongs />} />
+                <Route path="/my-event/add-ons" element={<ClientAddOns />} />
+                <Route path="/my-event/gifts" element={<ClientGifts />} />
                 <Route path="/my-event/documents" element={<ClientDocuments />} />
                 <Route path="/my-event/messages" element={<ClientMessages />} />
+                <Route path="/my-event/gallery" element={<ClientEventGallery />} />
+                <Route path="/my-event/feedback" element={<ClientFeedback />} />
               </Route>
             </Route>
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, ListChecks } from 'lucide-react'
+import { ArrowLeft, ListChecks, Search, UserCheck } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useToast } from '../../hooks/useToast'
 import { useStaffProfile } from '../../hooks/useStaffProfile'
@@ -9,6 +9,7 @@ import Spinner from '../../components/ui/Spinner'
 import StatusBadge from '../../components/ui/StatusBadge'
 import EmptyState from '../../components/ui/EmptyState'
 import Field from '../../components/ui/Field'
+import Input from '../../components/ui/Input'
 import { formatDate, formatTime } from '../../lib/utils'
 import { MENU_CATEGORIES, CHECKLIST_CATEGORIES, CHECKLIST_CATEGORY_LABELS, STAFF_ROLE_LABELS } from '../../lib/constants'
 
@@ -19,14 +20,17 @@ export default function StaffEventDetail() {
   const [event, setEvent] = useState(null)
   const [menuItems, setMenuItems] = useState([])
   const [checklist, setChecklist] = useState([])
+  const [guests, setGuests] = useState([])
+  const [guestQuery, setGuestQuery] = useState('')
   const [loading, setLoading] = useState(true)
 
   const load = async () => {
     setLoading(true)
-    const [eventRes, menuRes, checklistRes] = await Promise.all([
+    const [eventRes, menuRes, checklistRes, guestsRes] = await Promise.all([
       supabase.from('staff_event_bookings').select('*').eq('id', id).single(),
       supabase.from('booking_menu_items').select('*').eq('booking_id', id).eq('status', 'confirmed').order('category'),
       supabase.from('checklists').select('*').eq('booking_id', id).order('category'),
+      supabase.from('portal_guests').select('id, full_name, rsvp_status, checked_in_at').eq('booking_id', id).order('full_name'),
     ])
 
     if (eventRes.error) {
@@ -36,7 +40,21 @@ export default function StaffEventDetail() {
     }
     if (!menuRes.error) setMenuItems(menuRes.data ?? [])
     if (!checklistRes.error) setChecklist(checklistRes.data ?? [])
+    if (!guestsRes.error) setGuests(guestsRes.data ?? [])
     setLoading(false)
+  }
+
+  const handleCheckIn = async (guest) => {
+    const checkedIn = !guest.checked_in_at
+    setGuests((prev) => prev.map((g) => (g.id === guest.id ? { ...g, checked_in_at: checkedIn ? new Date().toISOString() : null } : g)))
+    const { error } = await supabase
+      .from('portal_guests')
+      .update({ checked_in_at: checkedIn ? new Date().toISOString() : null })
+      .eq('id', guest.id)
+    if (error) {
+      showToast(error.message, 'error')
+      load()
+    }
   }
 
   useEffect(() => {
@@ -161,6 +179,33 @@ export default function StaffEventDetail() {
           </div>
         )}
       </Card>
+
+      {event.event_type === 'Wedding' && guests.length > 0 && (
+        <Card title="Guest Check-In">
+          <div className="relative mb-3">
+            <Search className="w-4 h-4 text-text-muted absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input className="pl-9" placeholder="Search guest name…" value={guestQuery} onChange={(e) => setGuestQuery(e.target.value)} />
+          </div>
+          <ul className="divide-y divide-gold/10 max-h-96 overflow-y-auto">
+            {guests
+              .filter((g) => g.full_name.toLowerCase().includes(guestQuery.toLowerCase()))
+              .map((guest) => (
+                <li key={guest.id} className="py-2.5 flex items-center justify-between gap-3">
+                  <span className="text-sm text-text-dark truncate">{guest.full_name}</span>
+                  <button
+                    onClick={() => handleCheckIn(guest)}
+                    className={`shrink-0 flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-full border ${
+                      guest.checked_in_at ? 'bg-success/10 text-success border-success/30' : 'border-gold/30 text-text-muted'
+                    }`}
+                  >
+                    <UserCheck className="w-3.5 h-3.5" />
+                    {guest.checked_in_at ? 'Checked In' : 'Check In'}
+                  </button>
+                </li>
+              ))}
+          </ul>
+        </Card>
+      )}
     </div>
   )
 }

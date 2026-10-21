@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
-import { Copy, Check, KeyRound, UserX, UserCheck, Image as ImageIcon } from 'lucide-react'
+import { Copy, Check, KeyRound, UserX, UserCheck, UserPlus, Image as ImageIcon } from 'lucide-react'
 import { supabase } from '../../../lib/supabase'
 import { useToast } from '../../../hooks/useToast'
 import { formatCurrency, formatDateTime } from '../../../lib/utils'
+import { ADDON_REQUEST_STATUS_LABELS } from '../../../lib/constants'
 import Card from '../../ui/Card'
 import Button from '../../ui/Button'
 import Badge from '../../ui/Badge'
 import Modal from '../../ui/Modal'
 import Textarea from '../../ui/Textarea'
+import Input from '../../ui/Input'
 
 const MODULE_LABELS = {
   guests: 'Guest List',
@@ -20,15 +22,23 @@ const MODULE_LABELS = {
   entourage: 'Entourage',
   program: 'Program',
   menu: 'Menu',
+  moodboard: 'Mood Board',
+  seating: 'Seating Planner',
+  requirements: 'Requirements',
+  songs: 'Songs',
+  addons: 'Add-Ons',
+  gifts: 'Gifts',
+  gallery: 'Memory Gallery',
+  feedback: 'Feedback',
 }
 const DEFAULT_MODULES = Object.fromEntries(Object.keys(MODULE_LABELS).map((key) => [key, true]))
 
-async function callPortalAccess(action, bookingId) {
+async function callPortalAccess(action, bookingId, memberId) {
   const { data: sessionData } = await supabase.auth.getSession()
   const res = await fetch('/api/portal-access', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionData?.session?.access_token}` },
-    body: JSON.stringify({ bookingId, action }),
+    body: JSON.stringify({ bookingId, memberId, action }),
   })
   const json = await res.json()
   if (!res.ok) throw new Error(json.error || 'Request failed')
@@ -38,29 +48,41 @@ async function callPortalAccess(action, bookingId) {
 export default function WeddingPortalCard({ booking }) {
   const { showToast } = useToast()
   const [settings, setSettings] = useState(null)
-  const [member, setMember] = useState(null)
+  const [members, setMembers] = useState([])
   const [submissions, setSubmissions] = useState([])
+  const [addonRequests, setAddonRequests] = useState([])
+  const [moodBoard, setMoodBoard] = useState(null)
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
   const [revealedCredentials, setRevealedCredentials] = useState(null)
   const [copied, setCopied] = useState(false)
   const [rejectTarget, setRejectTarget] = useState(null)
   const [rejectReason, setRejectReason] = useState('')
+  const [quotePrice, setQuotePrice] = useState({})
 
   const loadAll = async () => {
-    const [settingsRes, memberRes, submissionsRes] = await Promise.all([
+    const [settingsRes, membersRes, submissionsRes, addonRes, moodBoardRes] = await Promise.all([
       supabase.from('booking_portal_settings').select('*').eq('booking_id', booking.id).maybeSingle(),
-      supabase.from('booking_members').select('*').eq('booking_id', booking.id).maybeSingle(),
+      supabase.from('booking_members').select('*').eq('booking_id', booking.id).order('created_at'),
       supabase
         .from('payment_submissions')
         .select('*')
         .eq('booking_id', booking.id)
         .eq('status', 'pending_verification')
         .order('created_at', { ascending: false }),
+      supabase
+        .from('addon_requests')
+        .select('*, addon_catalog(name)')
+        .eq('booking_id', booking.id)
+        .in('status', ['requested', 'quoted'])
+        .order('created_at', { ascending: false }),
+      supabase.from('portal_mood_board').select('*').eq('booking_id', booking.id).maybeSingle(),
     ])
     setSettings(settingsRes.data)
-    setMember(memberRes.data)
+    setMembers(membersRes.data ?? [])
     setSubmissions(submissionsRes.data ?? [])
+    setAddonRequests(addonRes.data ?? [])
+    setMoodBoard(moodBoardRes.data)
   }
 
   useEffect(() => {
@@ -83,21 +105,21 @@ export default function WeddingPortalCard({ booking }) {
     setSettings((prev) => ({ ...(prev ?? {}), booking_id: booking.id, modules: nextModules }))
   }
 
-  const handleAction = async (action) => {
+  const handleAction = async (action, memberId) => {
     setWorking(true)
     try {
-      const result = await callPortalAccess(action, booking.id)
+      const result = await callPortalAccess(action, booking.id, memberId)
       if (result.tempPassword) {
-        setRevealedCredentials({ bookingCode: result.bookingCode, tempPassword: result.tempPassword })
+        setRevealedCredentials({ loginCode: result.loginCode, tempPassword: result.tempPassword })
       }
       showToast(
-        action === 'generate'
-          ? 'Portal access generated.'
-          : action === 'reset'
-            ? 'Password reset.'
-            : action === 'disable'
-              ? 'Portal access disabled.'
-              : 'Portal access enabled.'
+        {
+          generate: 'Portal access generated.',
+          addCoplanner: 'Co-planner access added.',
+          reset: 'Password reset.',
+          disable: 'Portal access disabled.',
+          enable: 'Portal access enabled.',
+        }[action]
       )
       await loadAll()
     } catch (err) {
@@ -110,10 +132,37 @@ export default function WeddingPortalCard({ booking }) {
   const copyCredentials = async () => {
     if (!revealedCredentials) return
     const url = `${window.location.origin}/my-event/login`
-    const text = `Hi! Here's your Savor and Style My Event Portal access:\nLink: ${url}\nBooking Code: ${revealedCredentials.bookingCode}\nTemporary Password: ${revealedCredentials.tempPassword}\n\nPlease change your password after logging in.`
+    const text = `Hi! Here's your Savor and Style My Event Portal access:\nLink: ${url}\nBooking Code: ${revealedCredentials.loginCode}\nTemporary Password: ${revealedCredentials.tempPassword}\n\nPlease change your password after logging in.`
     await navigator.clipboard.writeText(text)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  const respondAddon = async (request, status) => {
+    const { error } = await supabase
+      .from('addon_requests')
+      .update({
+        status,
+        quoted_price: status === 'quoted' ? Number(quotePrice[request.id]) || null : request.quoted_price,
+        responded_at: new Date().toISOString(),
+      })
+      .eq('id', request.id)
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+    showToast(status === 'quoted' ? 'Quote sent to client.' : 'Add-on request updated.')
+    loadAll()
+  }
+
+  const reviewMoodBoard = async (status) => {
+    const { error } = await supabase.from('portal_mood_board').update({ status }).eq('booking_id', booking.id)
+    if (error) {
+      showToast(error.message, 'error')
+      return
+    }
+    showToast(status === 'approved' ? 'Mood board approved.' : 'Revision requested.')
+    loadAll()
   }
 
   const viewProof = async (path) => {
@@ -207,43 +256,50 @@ export default function WeddingPortalCard({ booking }) {
         </div>
 
         <div className="border-t border-gold/10 pt-4">
-          {!member ? (
+          {members.length === 0 ? (
             <Button size="sm" onClick={() => handleAction('generate')} disabled={working}>
               <KeyRound className="w-4 h-4" />
               Generate Portal Access
             </Button>
           ) : (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge color={member.active ? 'success' : 'default'}>{member.active ? 'Active' : 'Disabled'}</Badge>
-                <span className="text-xs text-text-muted">
-                  {member.last_login_at ? `Last login ${formatDateTime(member.last_login_at)}` : 'Never logged in'}
-                </span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm" variant="secondary" onClick={() => handleAction('reset')} disabled={working}>
-                  <KeyRound className="w-4 h-4" />
-                  Reset Password
-                </Button>
-                {member.active ? (
-                  <Button size="sm" variant="outline" onClick={() => handleAction('disable')} disabled={working}>
-                    <UserX className="w-4 h-4" />
-                    Disable Access
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="outline" onClick={() => handleAction('enable')} disabled={working}>
-                    <UserCheck className="w-4 h-4" />
-                    Enable Access
-                  </Button>
-                )}
-              </div>
+            <div className="space-y-3">
+              {members.map((m) => (
+                <div key={m.id} className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm font-medium text-text-dark">{m.login_code}</span>
+                  <Badge color={m.active ? 'success' : 'default'}>{m.active ? 'Active' : 'Disabled'}</Badge>
+                  <span className="text-xs text-text-muted">
+                    {m.last_login_at ? `Last login ${formatDateTime(m.last_login_at)}` : 'Never logged in'}
+                  </span>
+                  <div className="flex gap-2 ml-auto">
+                    <Button size="sm" variant="secondary" onClick={() => handleAction('reset', m.id)} disabled={working}>
+                      <KeyRound className="w-4 h-4" />
+                      Reset
+                    </Button>
+                    {m.active ? (
+                      <Button size="sm" variant="outline" onClick={() => handleAction('disable', m.id)} disabled={working}>
+                        <UserX className="w-4 h-4" />
+                        Disable
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="outline" onClick={() => handleAction('enable', m.id)} disabled={working}>
+                        <UserCheck className="w-4 h-4" />
+                        Enable
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <Button size="sm" variant="ghost" onClick={() => handleAction('addCoplanner')} disabled={working}>
+                <UserPlus className="w-4 h-4" />
+                Add Co-Planner
+              </Button>
             </div>
           )}
 
           {revealedCredentials && (
             <div className="mt-3 bg-cream rounded-lg px-3 py-2 border border-gold/20 text-sm">
               <p className="text-text-dark">
-                Booking Code: <strong>{revealedCredentials.bookingCode}</strong>
+                Login Code: <strong>{revealedCredentials.loginCode}</strong>
               </p>
               <p className="text-text-dark">
                 Temp Password: <strong>{revealedCredentials.tempPassword}</strong>
@@ -281,6 +337,58 @@ export default function WeddingPortalCard({ booking }) {
                       Reject
                     </Button>
                   </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {moodBoard?.status === 'submitted' && (
+          <div className="border-t border-gold/10 pt-4">
+            <p className="text-xs font-medium text-text-muted mb-2">
+              Mood board submitted for review — theme: {moodBoard.theme ?? '—'}
+            </p>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => reviewMoodBoard('approved')}>
+                Approve
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => reviewMoodBoard('revision_requested')}>
+                Request Revision
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {addonRequests.length > 0 && (
+          <div className="border-t border-gold/10 pt-4">
+            <p className="text-xs font-medium text-text-muted mb-2">Add-on requests</p>
+            <ul className="space-y-2">
+              {addonRequests.map((r) => (
+                <li key={r.id} className="rounded-lg border border-gold/15 p-3 text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium text-text-dark">{r.addon_catalog?.name ?? 'Custom request'}</span>
+                    <Badge color="gold">{ADDON_REQUEST_STATUS_LABELS[r.status]}</Badge>
+                  </div>
+                  {r.notes && <p className="text-xs text-text-muted mt-0.5">{r.notes}</p>}
+                  {r.status === 'requested' && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Input
+                        type="number"
+                        placeholder="Quoted price"
+                        className="w-28"
+                        onChange={(e) => setQuotePrice((prev) => ({ ...prev, [r.id]: e.target.value }))}
+                      />
+                      <Button size="sm" onClick={() => respondAddon(r, 'quoted')}>
+                        Send Quote
+                      </Button>
+                      <Button size="sm" variant="outline" className="text-danger" onClick={() => respondAddon(r, 'declined')}>
+                        Decline
+                      </Button>
+                    </div>
+                  )}
+                  {r.status === 'quoted' && (
+                    <p className="text-xs text-text-muted mt-1">Quoted {formatCurrency(r.quoted_price)} — awaiting client response.</p>
+                  )}
                 </li>
               ))}
             </ul>
