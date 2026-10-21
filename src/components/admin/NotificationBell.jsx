@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Bell, MessageSquareWarning, UtensilsCrossed, CalendarPlus } from 'lucide-react'
+import { Bell, MessageSquareWarning, UtensilsCrossed, CalendarPlus, MessageSquare } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import Spinner from '../ui/Spinner'
 import { formatRelativeTime, cn } from '../../lib/utils'
@@ -13,9 +13,11 @@ async function fetchNotifications() {
     changeRequestsRes,
     menuSuggestionsRes,
     newBookingsRes,
+    portalMessagesRes,
     unreadChangeRequestsRes,
     unreadMenuSuggestionsRes,
     unreadBookingsRes,
+    unreadPortalMessagesRes,
   ] = await Promise.all([
     supabase
       .from('change_requests')
@@ -33,6 +35,12 @@ async function fetchNotifications() {
       .select('id, booking_code, event_type, created_at, is_read, clients(name)')
       .order('created_at', { ascending: false })
       .limit(RECENT_LIMIT),
+    supabase
+      .from('portal_messages')
+      .select('id, body, created_at, read_by_admin, booking_id, bookings(booking_code, clients(name))')
+      .eq('sender_is_admin', false)
+      .order('created_at', { ascending: false })
+      .limit(RECENT_LIMIT),
     supabase.from('change_requests').select('*', { count: 'exact', head: true }).eq('is_read', false),
     supabase
       .from('booking_menu_items')
@@ -40,6 +48,11 @@ async function fetchNotifications() {
       .eq('suggested_by', 'client')
       .eq('is_read', false),
     supabase.from('bookings').select('*', { count: 'exact', head: true }).eq('is_read', false),
+    supabase
+      .from('portal_messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('sender_is_admin', false)
+      .eq('read_by_admin', false),
   ])
 
   const notifications = [
@@ -76,10 +89,25 @@ async function fetchNotifications() {
       time: row.created_at,
       isRead: row.is_read,
     })),
+    ...(portalMessagesRes.data ?? []).map((row) => ({
+      id: `portal_message-${row.id}`,
+      table: 'portal_messages',
+      readColumn: 'read_by_admin',
+      rowId: row.id,
+      bookingId: row.booking_id,
+      clientName: row.bookings?.clients?.name ?? 'Unknown client',
+      typeLabel: `My Event Portal: ${row.body.slice(0, 60)}`,
+      icon: MessageSquare,
+      time: row.created_at,
+      isRead: row.read_by_admin,
+    })),
   ].sort((a, b) => new Date(b.time) - new Date(a.time))
 
   const unreadCount =
-    (unreadChangeRequestsRes.count ?? 0) + (unreadMenuSuggestionsRes.count ?? 0) + (unreadBookingsRes.count ?? 0)
+    (unreadChangeRequestsRes.count ?? 0) +
+    (unreadMenuSuggestionsRes.count ?? 0) +
+    (unreadBookingsRes.count ?? 0) +
+    (unreadPortalMessagesRes.count ?? 0)
 
   return { notifications, unreadCount }
 }
@@ -109,6 +137,7 @@ export default function NotificationBell({ onOpenBooking }) {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'change_requests' }, load)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'booking_menu_items' }, load)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, load)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'portal_messages' }, load)
       .subscribe()
 
     return () => {
@@ -127,7 +156,10 @@ export default function NotificationBell({ onOpenBooking }) {
     setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, isRead: true } : n)))
     setUnreadCount((prev) => Math.max(0, prev - 1))
 
-    await supabase.from(notification.table).update({ is_read: true }).eq('id', notification.rowId)
+    await supabase
+      .from(notification.table)
+      .update({ [notification.readColumn ?? 'is_read']: true })
+      .eq('id', notification.rowId)
   }
 
   return (

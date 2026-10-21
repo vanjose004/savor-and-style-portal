@@ -7,6 +7,7 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [isStaff, setIsStaff] = useState(false)
+  const [isClient, setIsClient] = useState(false)
   const [roleLoading, setRoleLoading] = useState(true)
 
   useEffect(() => {
@@ -32,13 +33,15 @@ export function AuthProvider({ children }) {
       ? Promise.all([
           supabase.from('admins').select('id').eq('id', userId).maybeSingle(),
           supabase.from('staff').select('id').eq('id', userId).maybeSingle(),
+          supabase.from('booking_members').select('id').eq('auth_user_id', userId).eq('active', true).maybeSingle(),
         ])
-      : Promise.resolve([{ data: null }, { data: null }])
+      : Promise.resolve([{ data: null }, { data: null }, { data: null }])
 
-    lookups.then(([adminResult, staffResult]) => {
+    lookups.then(([adminResult, staffResult, memberResult]) => {
       if (cancelled) return
       setIsAdmin(!!adminResult.data)
       setIsStaff(!!staffResult.data)
+      setIsClient(!!memberResult.data)
       setRoleLoading(false)
     })
 
@@ -62,6 +65,7 @@ export function AuthProvider({ children }) {
     loading: loading || roleLoading,
     isAdmin,
     isStaff,
+    isClient,
     isChef,
     signIn,
     signOut,

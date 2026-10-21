@@ -86,6 +86,29 @@ export const CHANGE_REQUEST_TYPES = [
 
 export const CHANGE_REQUEST_STATUSES = ['pending', 'approved', 'rejected']
 
+// Wedding Client Portal ("My Event") — keep in sync with the check
+// constraints on portal_guests / payment_submissions in
+// 20260101000038_wedding_portal_foundation.sql.
+export const PORTAL_GUEST_SIDE_GROUPS = ['Bride', 'Groom', 'Family', 'Friends', 'Work', 'VIP', 'Others']
+
+export const PORTAL_GUEST_RSVP_STATUSES = ['not_invited', 'invited', 'confirmed', 'declined', 'maybe']
+
+export const PORTAL_GUEST_RSVP_LABELS = {
+  not_invited: 'Not Invited Yet',
+  invited: 'Invited',
+  confirmed: 'Confirmed',
+  declined: 'Declined',
+  maybe: 'Maybe',
+}
+
+export const PAYMENT_SUBMISSION_STATUSES = ['pending_verification', 'verified', 'rejected']
+
+export const PAYMENT_SUBMISSION_STATUS_LABELS = {
+  pending_verification: 'Pending Verification',
+  verified: 'Verified',
+  rejected: 'Rejected',
+}
+
 export const STAFF_ROLES = ['waiter', 'team_leader', 'cook', 'driver']
 
 export const CHECKLIST_CATEGORIES = ['setup', 'food_prep', 'equipment', 'service', 'cleanup']

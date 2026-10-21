@@ -52,6 +52,14 @@ import ChefDashboard from './pages/chef/ChefDashboard'
 import ChefEventDetail from './pages/chef/ChefEventDetail'
 import KitchenOrderSheet from './pages/chef/KitchenOrderSheet'
 import ClientPortal from './pages/ClientPortal'
+import RequireClientMember from './components/client-portal/RequireClientMember'
+import ClientPortalLayout from './components/client-portal/ClientPortalLayout'
+import ClientPortalLogin from './pages/client-portal/ClientPortalLogin'
+import ClientDashboard from './pages/client-portal/Dashboard'
+import ClientGuests from './pages/client-portal/Guests'
+import ClientPayments from './pages/client-portal/Payments'
+import ClientDocuments from './pages/client-portal/Documents'
+import ClientMessages from './pages/client-portal/Messages'
 import BookingRequest from './pages/BookingRequest'
 import HomeCheckin from './pages/HomeCheckin'
 import EventCheckin from './pages/EventCheckin'
@@ -166,6 +174,19 @@ function App() {
             </Route>
 
             <Route path="/booking/:access_token" element={<ClientPortal />} />
+
+            <Route path="/my-event/login" element={<ClientPortalLogin />} />
+
+            <Route element={<RequireClientMember />}>
+              <Route element={<ClientPortalLayout />}>
+                <Route path="/my-event" element={<ClientDashboard />} />
+                <Route path="/my-event/guests" element={<ClientGuests />} />
+                <Route path="/my-event/payments" element={<ClientPayments />} />
+                <Route path="/my-event/documents" element={<ClientDocuments />} />
+                <Route path="/my-event/messages" element={<ClientMessages />} />
+              </Route>
+            </Route>
+
             <Route path="/attendance/home" element={<HomeCheckin />} />
             <Route path="/attendance/event/:qr_token" element={<EventCheckin />} />
 

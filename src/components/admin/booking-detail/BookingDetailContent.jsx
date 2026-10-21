@@ -22,6 +22,7 @@ import StaffAssignmentsSection from './StaffAssignmentsSection'
 import ChecklistSection from './ChecklistSection'
 import InternalNotesCard from './InternalNotesCard'
 import ClientPortalCard from './ClientPortalCard'
+import WeddingPortalCard from './WeddingPortalCard'
 import EventCheckinQRCard from './EventCheckinQRCard'
 
 // Shared by the full booking detail page and the slide-over drawer opened
@@ -206,6 +207,7 @@ export default function BookingDetailContent({ bookingId, variant = 'page', onCl
   const sidebarSections = (
     <>
       <ClientPortalCard booking={booking} />
+      <WeddingPortalCard booking={booking} />
       <EventCheckinQRCard booking={booking} />
       <StaffAssignmentsSection bookingId={booking.id} />
       <ChecklistSection bookingId={booking.id} />
