@@ -1,6 +1,20 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, Wallet, FileText, MessageSquare, LogOut, Heart } from 'lucide-react'
+import {
+  LayoutDashboard,
+  Users,
+  Wallet,
+  FileText,
+  MessageSquare,
+  LogOut,
+  Heart,
+  ClipboardList,
+  PiggyBank,
+  Truck,
+  Crown,
+  ListOrdered,
+  UtensilsCrossed,
+} from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useClientMembership } from '../../hooks/useClientMembership'
 import { supabase } from '../../lib/supabase'
@@ -11,8 +25,14 @@ import Spinner from '../ui/Spinner'
 
 const NAV_ITEMS = [
   { to: '/my-event', label: 'Dashboard', icon: LayoutDashboard, module: null },
+  { to: '/my-event/checklist', label: 'Checklist', icon: ClipboardList, module: 'checklist' },
   { to: '/my-event/guests', label: 'Guests', icon: Users, module: 'guests' },
+  { to: '/my-event/budget', label: 'Budget', icon: PiggyBank, module: 'budget' },
   { to: '/my-event/payments', label: 'Payments', icon: Wallet, module: 'payments' },
+  { to: '/my-event/vendors', label: 'Vendors', icon: Truck, module: 'vendors' },
+  { to: '/my-event/entourage', label: 'Entourage', icon: Crown, module: 'entourage' },
+  { to: '/my-event/program', label: 'Program', icon: ListOrdered, module: 'program' },
+  { to: '/my-event/menu', label: 'Menu', icon: UtensilsCrossed, module: 'menu' },
   { to: '/my-event/documents', label: 'Documents', icon: FileText, module: 'documents' },
   { to: '/my-event/messages', label: 'Messages', icon: MessageSquare, module: 'messages' },
 ]

@@ -109,6 +109,131 @@ export const PAYMENT_SUBMISSION_STATUS_LABELS = {
   rejected: 'Rejected',
 }
 
+// Wedding Client Portal Phase 2 — checklist/program/entourage template
+// content and the enums backing portal_checklist_tasks / portal_vendors /
+// portal_expenses / portal_program_items
+// (20260101000039_wedding_portal_phase2.sql).
+
+export const PORTAL_CHECKLIST_STATUSES = ['todo', 'in_progress', 'done', 'skipped']
+
+export const PORTAL_CHECKLIST_STATUS_LABELS = {
+  todo: 'To Do',
+  in_progress: 'In Progress',
+  done: 'Done',
+  skipped: 'Skipped',
+}
+
+// offset_days is relative to the event date (negative = before). Seeded
+// once per booking by api/portal-access.js's "generate" action — editing
+// this list only affects bookings created afterward.
+export const WEDDING_CHECKLIST_TEMPLATE = [
+  { title: 'Set your overall budget', category: 'Planning', offsetDays: -270, owner: 'client' },
+  { title: 'Choose and book your church/venue for the ceremony', category: 'Venue', offsetDays: -240, owner: 'client' },
+  { title: 'List your principal and secondary sponsors', category: 'Entourage', offsetDays: -210, owner: 'client' },
+  { title: 'Finalize your draft guest list', category: 'Guests', offsetDays: -180, owner: 'client' },
+  { title: 'Choose your motif and color palette', category: 'Styling', offsetDays: -180, owner: 'client' },
+  { title: 'Book your photo & video team', category: 'Vendors', offsetDays: -150, owner: 'client' },
+  { title: 'Book your hair & makeup artist', category: 'Vendors', offsetDays: -150, owner: 'client' },
+  { title: 'Order the gown / barong', category: 'Attire', offsetDays: -150, owner: 'client' },
+  { title: 'Confirm catering package and inclusions', category: 'Catering', offsetDays: -120, owner: 'team' },
+  { title: 'Send out invitations', category: 'Guests', offsetDays: -90, owner: 'client' },
+  { title: 'Attend pre-Cana / marriage preparation seminar', category: 'Requirements', offsetDays: -60, owner: 'client' },
+  { title: 'Schedule food tasting', category: 'Catering', offsetDays: -45, owner: 'team' },
+  { title: 'Finalize your menu selection', category: 'Catering', offsetDays: -30, owner: 'client' },
+  { title: 'Submit your entourage list', category: 'Entourage', offsetDays: -30, owner: 'client' },
+  { title: 'Submit your program and song list', category: 'Program', offsetDays: -21, owner: 'client' },
+  { title: 'Lock your final headcount', category: 'Guests', offsetDays: -14, owner: 'client' },
+  { title: 'Settle your final balance', category: 'Payments', offsetDays: -7, owner: 'client' },
+  { title: 'Confirm event day timeline with your coordinator', category: 'Program', offsetDays: -3, owner: 'team' },
+  { title: 'Prepare envelopes for fees (officiant, musicians, etc.)', category: 'Payments', offsetDays: -2, owner: 'client' },
+  { title: 'Pack your wedding-day essentials kit', category: 'Planning', offsetDays: -1, owner: 'client' },
+]
+
+export const PORTAL_VENDOR_STATUSES = ['inquiry', 'booked', 'confirmed']
+
+export const PORTAL_VENDOR_STATUS_LABELS = {
+  inquiry: 'Inquiry',
+  booked: 'Booked',
+  confirmed: 'Confirmed',
+}
+
+export const WEDDING_BUDGET_CATEGORIES = [
+  'Church / Ceremony',
+  'Reception / Catering',
+  'Venue',
+  'Attire',
+  'Hair & Makeup',
+  'Photo & Video',
+  'Invitations & Stationery',
+  'Flowers',
+  'Rings',
+  'Cake',
+  'Souvenirs / Giveaways',
+  'Transportation',
+  'Honeymoon',
+  'Fees & Permits',
+  'Misc',
+]
+
+export const PORTAL_EXPENSE_STATUSES = ['planned', 'booked', 'partially_paid', 'fully_paid']
+
+export const PORTAL_EXPENSE_STATUS_LABELS = {
+  planned: 'Planned',
+  booked: 'Booked',
+  partially_paid: 'Partially Paid',
+  fully_paid: 'Fully Paid',
+}
+
+// Quick-add suggestions for the Entourage page — role_group sections mirror
+// the PRD's Wedding entourage structure. Clients can still add any custom
+// role_name freely; this just speeds up the common case.
+export const WEDDING_ROLE_TEMPLATE = [
+  { role_group: 'Principal Sponsors', role_name: 'Principal Sponsor Pair' },
+  { role_group: 'Secondary Sponsors', role_name: 'Candle Sponsor' },
+  { role_group: 'Secondary Sponsors', role_name: 'Veil Sponsor' },
+  { role_group: 'Secondary Sponsors', role_name: 'Cord Sponsor' },
+  { role_group: 'Core Party', role_name: 'Best Man' },
+  { role_group: 'Core Party', role_name: 'Maid/Matron of Honor' },
+  { role_group: 'Core Party', role_name: 'Groomsman' },
+  { role_group: 'Core Party', role_name: 'Bridesmaid' },
+  { role_group: 'Bearers & Flower Girls', role_name: 'Bible Bearer' },
+  { role_group: 'Bearers & Flower Girls', role_name: 'Ring Bearer' },
+  { role_group: 'Bearers & Flower Girls', role_name: 'Coin Bearer' },
+  { role_group: 'Bearers & Flower Girls', role_name: 'Flower Girl' },
+  { role_group: 'Family', role_name: "Parent of the Bride" },
+  { role_group: 'Family', role_name: "Parent of the Groom" },
+  { role_group: 'Ceremony', role_name: 'Officiant' },
+  { role_group: 'Ceremony', role_name: 'Reader/Lector' },
+]
+
+export const PORTAL_PROGRAM_RESPONSIBLE = ['client', 'host', 'savor_team', 'coordinator']
+
+export const PORTAL_PROGRAM_RESPONSIBLE_LABELS = {
+  client: 'Client',
+  host: 'Host/Emcee',
+  savor_team: 'Savor & Style Team',
+  coordinator: 'Coordinator',
+}
+
+// "Load Wedding Template" starter rundown — duration_min only; start times
+// are computed sequentially client-side from whatever first start time the
+// user picks.
+export const WEDDING_PROGRAM_TEMPLATE = [
+  { segment: 'Guest arrival & cocktails', duration_min: 30 },
+  { segment: 'Entrance of entourage', duration_min: 10 },
+  { segment: "Couple's grand entrance", duration_min: 10 },
+  { segment: 'Welcome remarks & prayer', duration_min: 10 },
+  { segment: 'Dinner', duration_min: 30 },
+  { segment: 'Toast & speeches', duration_min: 20 },
+  { segment: 'Cake cutting', duration_min: 10 },
+  { segment: 'First dance', duration_min: 10 },
+  { segment: "Parents' dance", duration_min: 10 },
+  { segment: 'Bouquet & garter toss', duration_min: 15 },
+  { segment: 'AVP / SDE showing', duration_min: 10 },
+  { segment: 'Thank-you speech', duration_min: 5 },
+  { segment: 'Send-off', duration_min: 10 },
+]
+
 export const STAFF_ROLES = ['waiter', 'team_leader', 'cook', 'driver']
 
 export const CHECKLIST_CATEGORIES = ['setup', 'food_prep', 'equipment', 'service', 'cleanup']

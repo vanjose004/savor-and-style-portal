@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CalendarHeart, Users, Wallet, MessageSquare } from 'lucide-react'
+import { CalendarHeart, Users, Wallet, MessageSquare, ClipboardList } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
-import { formatCurrency, formatDate, getDaysUntil, getPaymentProgress } from '../../lib/utils'
+import { formatCurrency, formatDate, formatShortDate, getDaysUntil, getPaymentProgress } from '../../lib/utils'
 import Card from '../../components/ui/Card'
 import Spinner from '../../components/ui/Spinner'
 
@@ -10,6 +10,8 @@ export default function Dashboard() {
   const [booking, setBooking] = useState(null)
   const [guestCounts, setGuestCounts] = useState({ total: 0, confirmed: 0 })
   const [unreadMessages, setUnreadMessages] = useState(0)
+  const [checklistProgress, setChecklistProgress] = useState(0)
+  const [upcomingTasks, setUpcomingTasks] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -23,7 +25,7 @@ export default function Dashboard() {
       setBooking(current)
 
       if (current) {
-        const [{ data: guests }, { count: unread }] = await Promise.all([
+        const [{ data: guests }, { count: unread }, { data: tasks }] = await Promise.all([
           supabase.from('portal_guests').select('rsvp_status').eq('booking_id', current.id),
           supabase
             .from('portal_messages')
@@ -31,6 +33,7 @@ export default function Dashboard() {
             .eq('booking_id', current.id)
             .eq('sender_is_admin', true)
             .eq('read_by_client', false),
+          supabase.from('portal_checklist_tasks').select('id, status, due_date, title').eq('booking_id', current.id),
         ])
         if (cancelled) return
         setGuestCounts({
@@ -38,6 +41,17 @@ export default function Dashboard() {
           confirmed: guests?.filter((g) => g.rsvp_status === 'confirmed').length ?? 0,
         })
         setUnreadMessages(unread ?? 0)
+
+        const allTasks = tasks ?? []
+        setChecklistProgress(
+          allTasks.length > 0 ? Math.round((allTasks.filter((t) => t.status === 'done').length / allTasks.length) * 100) : 0
+        )
+        setUpcomingTasks(
+          allTasks
+            .filter((t) => t.status !== 'done' && t.status !== 'skipped' && t.due_date)
+            .sort((a, b) => a.due_date.localeCompare(b.due_date))
+            .slice(0, 3)
+        )
       }
       setLoading(false)
     }
@@ -79,6 +93,30 @@ export default function Dashboard() {
           </div>
         </div>
       </Card>
+
+      <Link to="/my-event/checklist">
+        <Card className="hover:border-wine/40 transition-colors">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-5 h-5 text-wine" />
+              <span className="text-sm font-semibold text-text-dark">Planning Progress</span>
+            </div>
+            <span className="text-sm font-semibold text-text-dark">{checklistProgress}%</span>
+          </div>
+          <div className="h-2 rounded-full bg-cream overflow-hidden mb-2">
+            <div className="h-full bg-success transition-all" style={{ width: `${checklistProgress}%` }} />
+          </div>
+          {upcomingTasks.length > 0 && (
+            <ul className="text-xs text-text-muted space-y-0.5">
+              {upcomingTasks.map((t) => (
+                <li key={t.id}>
+                  {formatShortDate(t.due_date)} — {t.title}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+      </Link>
 
       <div className="grid grid-cols-2 gap-4">
         <Link to="/my-event/guests">

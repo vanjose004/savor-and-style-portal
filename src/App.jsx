@@ -60,6 +60,12 @@ import ClientGuests from './pages/client-portal/Guests'
 import ClientPayments from './pages/client-portal/Payments'
 import ClientDocuments from './pages/client-portal/Documents'
 import ClientMessages from './pages/client-portal/Messages'
+import ClientChecklist from './pages/client-portal/Checklist'
+import ClientBudget from './pages/client-portal/Budget'
+import ClientVendors from './pages/client-portal/Vendors'
+import ClientEntourage from './pages/client-portal/Entourage'
+import ClientProgram from './pages/client-portal/Program'
+import ClientMenu from './pages/client-portal/Menu'
 import BookingRequest from './pages/BookingRequest'
 import HomeCheckin from './pages/HomeCheckin'
 import EventCheckin from './pages/EventCheckin'
@@ -180,8 +186,14 @@ function App() {
             <Route element={<RequireClientMember />}>
               <Route element={<ClientPortalLayout />}>
                 <Route path="/my-event" element={<ClientDashboard />} />
+                <Route path="/my-event/checklist" element={<ClientChecklist />} />
                 <Route path="/my-event/guests" element={<ClientGuests />} />
+                <Route path="/my-event/budget" element={<ClientBudget />} />
                 <Route path="/my-event/payments" element={<ClientPayments />} />
+                <Route path="/my-event/vendors" element={<ClientVendors />} />
+                <Route path="/my-event/entourage" element={<ClientEntourage />} />
+                <Route path="/my-event/program" element={<ClientProgram />} />
+                <Route path="/my-event/menu" element={<ClientMenu />} />
                 <Route path="/my-event/documents" element={<ClientDocuments />} />
                 <Route path="/my-event/messages" element={<ClientMessages />} />
               </Route>

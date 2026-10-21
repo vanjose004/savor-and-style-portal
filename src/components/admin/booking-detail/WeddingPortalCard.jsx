@@ -9,8 +9,19 @@ import Badge from '../../ui/Badge'
 import Modal from '../../ui/Modal'
 import Textarea from '../../ui/Textarea'
 
-const MODULE_LABELS = { guests: 'Guest List', payments: 'Payments', documents: 'Documents', messages: 'Messages' }
-const DEFAULT_MODULES = { guests: true, payments: true, documents: true, messages: true }
+const MODULE_LABELS = {
+  guests: 'Guest List',
+  payments: 'Payments',
+  documents: 'Documents',
+  messages: 'Messages',
+  checklist: 'Checklist',
+  budget: 'Budget',
+  vendors: 'Vendors',
+  entourage: 'Entourage',
+  program: 'Program',
+  menu: 'Menu',
+}
+const DEFAULT_MODULES = Object.fromEntries(Object.keys(MODULE_LABELS).map((key) => [key, true]))
 
 async function callPortalAccess(action, bookingId) {
   const { data: sessionData } = await supabase.auth.getSession()

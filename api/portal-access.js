@@ -1,5 +1,6 @@
 import { getSupabaseAdmin } from './_lib/supabaseAdmin.js'
 import { requireAdmin } from './_lib/requireAdmin.js'
+import { WEDDING_CHECKLIST_TEMPLATE } from '../src/lib/constants.js'
 
 // Admin-only control panel for a booking's "My Event" portal login —
 // called from src/components/admin/booking-detail/WeddingPortalCard.jsx.
@@ -51,7 +52,7 @@ export default async function handler(req, res) {
   try {
     const { data: booking, error: bookingError } = await supabaseAdmin
       .from('bookings')
-      .select('id, booking_code')
+      .select('id, booking_code, event_date')
       .eq('id', bookingId)
       .maybeSingle()
     if (bookingError || !booking) {
@@ -118,6 +119,28 @@ export default async function handler(req, res) {
       await supabaseAdmin
         .from('booking_portal_settings')
         .upsert({ booking_id: bookingId, portal_enabled: true }, { onConflict: 'booking_id' })
+
+      // Seed the Wedding checklist template once, with due dates computed
+      // relative to the event date. If the booking is already close to (or
+      // past) a template item's offset, its due date lands in the past —
+      // the client UI flags those as "Do ASAP" rather than backdating them
+      // away, so nothing here needs to special-case a late-booked wedding.
+      if (booking.event_date) {
+        const eventDate = new Date(`${booking.event_date}T00:00:00`)
+        const tasks = WEDDING_CHECKLIST_TEMPLATE.map((item, index) => {
+          const dueDate = new Date(eventDate)
+          dueDate.setDate(dueDate.getDate() + item.offsetDays)
+          return {
+            booking_id: bookingId,
+            title: item.title,
+            category: item.category,
+            owner: item.owner,
+            due_date: dueDate.toISOString().slice(0, 10),
+            sort: index,
+          }
+        })
+        await supabaseAdmin.from('portal_checklist_tasks').insert(tasks)
+      }
 
       res.status(200).json({ bookingCode: booking.booking_code, tempPassword })
       return
