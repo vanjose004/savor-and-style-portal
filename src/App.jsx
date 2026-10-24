@@ -44,6 +44,7 @@ import AccountingReports from './pages/admin/accounting/Reports'
 import StaffLogin from './pages/staff/StaffLogin'
 import StaffRegister from './pages/staff/StaffRegister'
 import StaffDashboard from './pages/staff/StaffDashboard'
+import DriverSchedule from './pages/staff/DriverSchedule'
 import StaffEventDetail from './pages/staff/StaffEventDetail'
 import Payroll from './pages/staff/Payroll'
 import PayrollSubmit from './pages/staff/PayrollSubmit'
@@ -172,6 +173,7 @@ function App() {
             <Route element={<RequireStaff />}>
               <Route element={<StaffLayout />}>
                 <Route path="/staff/dashboard" element={<StaffDashboard />} />
+                <Route path="/staff/driver-schedule" element={<DriverSchedule />} />
                 <Route path="/staff/event/:id" element={<StaffEventDetail />} />
                 <Route path="/staff/payroll" element={<Payroll />} />
                 <Route path="/staff/payroll/submit/:eventId" element={<PayrollSubmit />} />
