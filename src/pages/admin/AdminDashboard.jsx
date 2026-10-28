@@ -263,18 +263,18 @@ export default function AdminDashboard() {
           <h1 className="font-heading text-2xl font-bold text-wine">Dashboard</h1>
           <p className="text-sm text-text-muted mt-1">Overview of bookings, payments, and activity.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button as={Link} to="/admin/bookings/new">
-            <CalendarPlus className="w-4 h-4" />
-            New Booking
+        <div className="grid grid-cols-3 gap-2 w-full sm:w-auto sm:flex sm:flex-wrap sm:gap-2">
+          <Button as={Link} to="/admin/bookings/new" className="flex-col gap-1 py-3 sm:flex-row sm:gap-2 sm:py-2">
+            <CalendarPlus className="w-5 h-5 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm">New Booking</span>
           </Button>
-          <Button as={Link} to="/admin/bookings" variant="secondary">
-            <Banknote className="w-4 h-4" />
-            Record Payment
+          <Button as={Link} to="/admin/bookings" variant="secondary" className="flex-col gap-1 py-3 sm:flex-row sm:gap-2 sm:py-2">
+            <Banknote className="w-5 h-5 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm">Record Payment</span>
           </Button>
-          <Button as={Link} to="/admin/bookings" variant="secondary">
-            <ClipboardList className="w-4 h-4" />
-            Add Update
+          <Button as={Link} to="/admin/bookings" variant="secondary" className="flex-col gap-1 py-3 sm:flex-row sm:gap-2 sm:py-2">
+            <ClipboardList className="w-5 h-5 sm:w-4 sm:h-4" />
+            <span className="text-xs sm:text-sm">Add Update</span>
           </Button>
         </div>
       </div>
@@ -308,7 +308,7 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard icon={CalendarDays} label="Total Bookings" value={metrics.totalBookings} />
         <StatCard icon={CalendarClock} label="Upcoming This Month" value={metrics.upcomingThisMonth} />
         <StatCard icon={Wallet} label="Revenue Collected" value={formatCurrency(metrics.totalRevenue)} />

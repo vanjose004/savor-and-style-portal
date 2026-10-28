@@ -8,47 +8,68 @@ export function AuthProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [isStaff, setIsStaff] = useState(false)
   const [isClient, setIsClient] = useState(false)
-  const [roleLoading, setRoleLoading] = useState(true)
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setLoading(false)
-    })
-
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
-    })
-
-    return () => subscription.subscription.unsubscribe()
-  }, [])
-
+  // Session + role resolution run as one sequential bootstrap, not two
+  // independent effects, so `loading` only ever goes false once isAdmin/
+  // isStaff/isClient already reflect the real session. Two separate
+  // effects raced here before: the role-lookup effect's own "no session
+  // yet" fast path (session === null on first render) would resolve
+  // before supabase.auth.getSession() came back, so on a fresh full-page
+  // load of a deep route (e.g. a browser refresh on /admin/bookings) there
+  // was a one-render window where loading was already false but isAdmin
+  // was still stale-false — RequireAdmin read that as "not an admin" and
+  // bounced to /admin/login, which then redirected logged-in admins to
+  // /admin/dashboard (losing the route they actually asked for). Auth
+  // state changes after the initial bootstrap (token refresh, sign-in,
+  // sign-out) still update session/roles below, just without re-flipping
+  // the global `loading` flag — that would otherwise flash every admin
+  // page to a full-screen spinner on every background token refresh.
   useEffect(() => {
     let cancelled = false
-    const userId = session?.user?.id
 
-    setRoleLoading(true)
+    async function resolveRoles(currentSession) {
+      const userId = currentSession?.user?.id
+      if (!userId) {
+        if (!cancelled) {
+          setIsAdmin(false)
+          setIsStaff(false)
+          setIsClient(false)
+        }
+        return
+      }
 
-    const lookups = userId
-      ? Promise.all([
-          supabase.from('admins').select('id').eq('id', userId).maybeSingle(),
-          supabase.from('staff').select('id').eq('id', userId).maybeSingle(),
-          supabase.from('booking_members').select('id').eq('auth_user_id', userId).eq('active', true).maybeSingle(),
-        ])
-      : Promise.resolve([{ data: null }, { data: null }, { data: null }])
-
-    lookups.then(([adminResult, staffResult, memberResult]) => {
+      const [adminResult, staffResult, memberResult] = await Promise.all([
+        supabase.from('admins').select('id').eq('id', userId).maybeSingle(),
+        supabase.from('staff').select('id').eq('id', userId).maybeSingle(),
+        supabase.from('booking_members').select('id').eq('auth_user_id', userId).eq('active', true).maybeSingle(),
+      ])
       if (cancelled) return
       setIsAdmin(!!adminResult.data)
       setIsStaff(!!staffResult.data)
       setIsClient(!!memberResult.data)
-      setRoleLoading(false)
+    }
+
+    async function init() {
+      const { data } = await supabase.auth.getSession()
+      if (cancelled) return
+      setSession(data.session)
+      await resolveRoles(data.session)
+      if (!cancelled) setLoading(false)
+    }
+
+    init()
+
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (cancelled) return
+      setSession(newSession)
+      resolveRoles(newSession)
     })
 
     return () => {
       cancelled = true
+      subscription.subscription.unsubscribe()
     }
-  }, [session])
+  }, [])
 
   const signIn = (email, password) => supabase.auth.signInWithPassword({ email, password })
 
@@ -62,7 +83,7 @@ export function AuthProvider({ children }) {
   const value = {
     session,
     user: session?.user ?? null,
-    loading: loading || roleLoading,
+    loading,
     isAdmin,
     isStaff,
     isClient,

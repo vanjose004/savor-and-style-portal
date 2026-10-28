@@ -68,8 +68,8 @@ export default function UpcomingMenus() {
         />
       ) : (
         <Card>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-6 px-6 sm:mx-0 sm:px-0">
+            <table className="w-full min-w-[720px] text-sm">
               <thead className="text-text-muted">
                 <tr>
                   <th className="text-left font-medium px-3 py-2">Client Name</th>

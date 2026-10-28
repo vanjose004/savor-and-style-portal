@@ -9,10 +9,11 @@ import Input from '../../components/ui/Input'
 import Select from '../../components/ui/Select'
 import Modal from '../../components/ui/Modal'
 import Badge from '../../components/ui/Badge'
+import StatusBadge from '../../components/ui/StatusBadge'
 import Spinner from '../../components/ui/Spinner'
 import EmptyState from '../../components/ui/EmptyState'
 import { BOOKING_STATUSES, EVENT_TYPES } from '../../lib/constants'
-import { formatCurrency, formatShortDate, getDaysUntil, getPaymentProgress } from '../../lib/utils'
+import { formatCurrency, formatShortDate, formatTime, getDaysUntil, getPaymentProgress } from '../../lib/utils'
 
 const STATUS_OPTIONS = BOOKING_STATUSES.map((s) => ({
   value: s,
@@ -224,7 +225,7 @@ export default function BookingsList() {
           }
         />
       ) : (
-        <div className="bg-warm-white rounded-xl border border-gold/20 shadow-sm divide-y divide-gold/10">
+        <div className="space-y-3 sm:space-y-0 sm:bg-warm-white sm:rounded-xl sm:border sm:border-gold/20 sm:shadow-sm sm:divide-y sm:divide-gold/10">
           {bookings.map((booking) => {
             const countdown = getCountdown(booking.event_date)
             const { paid, remaining } = getPaymentProgress(booking.total_amount, booking.balance)
@@ -232,14 +233,25 @@ export default function BookingsList() {
             return (
               <div
                 key={booking.id}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-cream/50 transition-colors cursor-pointer"
+                className="rounded-xl border border-gold/15 bg-warm-white shadow-sm p-4 cursor-pointer hover:bg-cream/50 transition-colors sm:rounded-none sm:border-0 sm:shadow-none sm:p-0 sm:px-4 sm:py-3 sm:flex sm:items-center sm:gap-3"
                 onClick={() => navigate(`/admin/bookings/${booking.id}`)}
               >
-                <Badge color={countdown.color} className="shrink-0">
+                {/* Mobile card header: name, event type, status — desktop uses the compact row below instead */}
+                <div className="flex items-start justify-between gap-2 sm:hidden">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-text-dark truncate">
+                      {booking.clients?.name ?? 'Unknown client'}
+                    </p>
+                    <p className="text-xs text-text-muted truncate">{booking.event_type}</p>
+                  </div>
+                  <StatusBadge status={booking.status} className="shrink-0" />
+                </div>
+
+                <Badge color={countdown.color} className="hidden sm:inline-flex shrink-0">
                   {formatShortDate(booking.event_date)} • {countdown.label}
                 </Badge>
 
-                <div className="min-w-0 flex-1">
+                <div className="hidden sm:block min-w-0 flex-1">
                   <p className="text-sm font-semibold text-text-dark truncate">
                     {booking.clients?.name ?? 'Unknown client'}
                   </p>
@@ -266,8 +278,44 @@ export default function BookingsList() {
                   <p className="text-sm font-medium text-danger">{formatCurrency(remaining)}</p>
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <Button as={Link} to={`/admin/bookings/${booking.id}`} variant="secondary" size="sm">
+                <div className="hidden sm:block shrink-0">
+                  <StatusBadge status={booking.status} />
+                </div>
+
+                {/* Mobile-only detail grid — same figures the hidden sm:/md: columns above show on desktop */}
+                <div className="grid grid-cols-2 gap-y-2 gap-x-3 mt-3 text-xs sm:hidden">
+                  <div>
+                    <p className="text-text-muted">Date &amp; Time</p>
+                    <p className="text-text-dark font-medium">
+                      {formatShortDate(booking.event_date)}
+                      {booking.event_time ? ` · ${formatTime(booking.event_time)}` : ''}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-text-muted">Pax</p>
+                    <p className="text-text-dark font-medium">{booking.pax ?? '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-text-muted">Paid</p>
+                    <p className="text-success font-medium">{formatCurrency(paid)}</p>
+                  </div>
+                  <div>
+                    <p className="text-text-muted">Balance</p>
+                    <p className="text-danger font-medium">{formatCurrency(remaining)}</p>
+                  </div>
+                </div>
+                {booking.venue && (
+                  <p className="text-xs text-text-muted truncate flex items-center gap-1 mt-2 sm:hidden">
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    {booking.venue}
+                  </p>
+                )}
+
+                <div
+                  className="flex items-center gap-2 mt-3 sm:mt-0 sm:gap-1 sm:shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button as={Link} to={`/admin/bookings/${booking.id}`} variant="secondary" size="sm" className="flex-1 sm:flex-none">
                     View
                   </Button>
                   <Button

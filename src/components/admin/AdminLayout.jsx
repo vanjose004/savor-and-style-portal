@@ -28,6 +28,16 @@ import Logo from '../ui/Logo'
 import NotificationBell from './NotificationBell'
 import BookingDetailDrawer from './booking-detail/BookingDetailDrawer'
 
+// Grab/Shopee-style persistent bottom bar for mobile — a quick-access
+// subset of NAV_ITEMS, not a replacement for it. "More" reuses the
+// existing slide-out sidebar (setMobileOpen) instead of a separate page,
+// so the full nav list stays in one place.
+const BOTTOM_NAV_ITEMS = [
+  { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/admin/bookings', label: 'Bookings', icon: CalendarDays },
+  { to: '/admin/accounting', label: 'Payments', icon: Wallet },
+]
+
 const NAV_ITEMS = [
   { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/admin/calendar', label: 'Calendar', icon: Calendar },
@@ -141,10 +151,38 @@ export default function AdminLayout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 max-w-6xl w-full mx-auto">
+        <main className="flex-1 p-4 pb-20 lg:p-8 lg:pb-8 max-w-6xl w-full mx-auto">
           <Outlet context={{ openBookingDrawer, bookingsRefreshKey }} />
         </main>
       </div>
+
+      {!mobileOpen && (
+        <nav className="fixed bottom-0 inset-x-0 z-30 lg:hidden bg-warm-white border-t border-gold/20 flex items-stretch pb-[env(safe-area-inset-bottom)]">
+          {BOTTOM_NAV_ITEMS.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                cn(
+                  'flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-medium transition-colors',
+                  isActive ? 'text-wine' : 'text-text-muted'
+                )
+              }
+            >
+              <Icon className="w-5 h-5" />
+              {label}
+            </NavLink>
+          ))}
+          <button
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            className="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-medium text-text-muted transition-colors"
+          >
+            <MenuIcon className="w-5 h-5" />
+            More
+          </button>
+        </nav>
+      )}
 
       <BookingDetailDrawer
         bookingId={drawerBookingId}
