@@ -1,36 +1,60 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Image as ImageIcon } from 'lucide-react'
+import { ArrowLeft, Image as ImageIcon, AlertCircle, RefreshCw } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { supabase } from '../lib/supabase'
 import { GALLERY_CATEGORIES, BUSINESS } from '../lib/constants'
 import { cn } from '../lib/utils'
 import Spinner from '../components/ui/Spinner'
 import EmptyState from '../components/ui/EmptyState'
+import Button from '../components/ui/Button'
 import Logo from '../components/ui/Logo'
 import Lightbox from '../components/gallery/Lightbox'
+
+// Supabase's client has no default fetch timeout — if the database itself
+// is unreachable (e.g. connection pool exhausted) rather than returning a
+// clean error, the request just hangs, and `loading` would never flip to
+// false. This caps how long we wait before treating it as a failure.
+const REQUEST_TIMEOUT_MS = 12000
 
 export default function Gallery() {
   const [photos, setPhotos] = useState([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('')
   const [lightboxIndex, setLightboxIndex] = useState(null)
+  const [retryKey, setRetryKey] = useState(0)
+
+  const retry = useCallback(() => setRetryKey((key) => key + 1), [])
 
   useEffect(() => {
     let cancelled = false
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
 
     async function load() {
-      const { data, error } = await supabase.rpc('get_gallery_photos')
+      setLoading(true)
+      setLoadError(false)
+
+      const { data, error } = await supabase.rpc('get_gallery_photos').abortSignal(controller.signal)
+      clearTimeout(timeout)
       if (cancelled) return
-      if (!error) setPhotos(data ?? [])
+
+      if (error) {
+        setLoadError(true)
+      } else {
+        setPhotos(data ?? [])
+      }
       setLoading(false)
     }
 
     load()
     return () => {
       cancelled = true
+      clearTimeout(timeout)
+      controller.abort()
     }
-  }, [])
+  }, [retryKey])
 
   const albums = useMemo(() => {
     const all = { value: '', label: 'All', count: photos.length }
@@ -137,6 +161,18 @@ export default function Gallery() {
               <div className="flex items-center justify-center py-24">
                 <Spinner className="w-8 h-8" />
               </div>
+            ) : loadError ? (
+              <EmptyState
+                icon={AlertCircle}
+                title="Couldn't load the gallery"
+                description="Something went wrong on our end. Please try again in a moment."
+                action={
+                  <Button variant="secondary" onClick={retry}>
+                    <RefreshCw className="w-4 h-4" />
+                    Try Again
+                  </Button>
+                }
+              />
             ) : visiblePhotos.length === 0 ? (
               <EmptyState icon={ImageIcon} title="No photos yet" description="Check back soon for event highlights." />
             ) : (
